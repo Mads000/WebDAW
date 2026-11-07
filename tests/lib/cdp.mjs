@@ -14,7 +14,8 @@ export { sleep };
 
 // realistic: ohne Autoplay-Freigabe, wie bei einem normalen Browserstart
 export async function launch({ width = 1440, height = 900, fakeAudioFile = null, downloadDir = null, realistic = false } = {}) {
-    const exe = CHROME_PATHS.find(existsSync);
+    // WEBDAW_BROWSER: anderer Chromium-Browser, z. B. Opera GX
+    const exe = process.env.WEBDAW_BROWSER || CHROME_PATHS.find(existsSync);
     if (!exe) throw new Error('Kein Chrome/Edge gefunden');
     const dataDir = mkdtempSync(join(tmpdir(), 'webdaw-test-'));
     const args = [
@@ -35,8 +36,14 @@ export async function launch({ width = 1440, height = 900, fakeAudioFile = null,
     }
     if (!port) { proc.kill(); throw new Error('Chrome hat keinen Debug-Port geöffnet'); }
 
-    const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-    const target = targets.find(t => t.type === 'page');
+    let target = null;
+    for (let i = 0; i < 30 && !target; i++) {
+        const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+        target = targets.find(t => t.type === 'page');
+        if (!target) await sleep(100);
+    }
+    // Manche Browser (z. B. Opera) öffnen ohne Fenster keinen Tab
+    if (!target) target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json();
     const page = new Page(target.webSocketDebuggerUrl);
     await page.connect();
     await page.send('Page.enable');

@@ -94,6 +94,15 @@
 .region .rtake { display: inline-block; margin-left: 5px; padding: 0 4px; border-radius: 3px; background: rgba(255, 255, 255, .24); font-size: 9.5px; line-height: 12px; }
 .region .rsz, .region .rszL { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; z-index: 3; }
 .region .rsz { right: 0; } .region .rszL { left: 0; }
+/* Loop-Griff: obere rechte Ecke, über dem Längen-Griff */
+.region .rloop {
+    position: absolute; right: 0; top: 0; width: 14px; height: 15px; z-index: 4; cursor: alias;
+    border-radius: 0 5px 0 5px; display: flex; align-items: center; justify-content: center;
+    color: rgba(255, 255, 255, .9); font-size: 11px; line-height: 1; opacity: 0; transition: opacity .12s;
+}
+.region .rloop::before { content: '↻'; }
+.region:hover .rloop, .region.sel .rloop { opacity: 1; background: rgba(0, 0, 0, .35); }
+.region .rsz { top: 15px; }
 .region.rec { background: rgba(229, 72, 77, .8); pointer-events: none; }
 
 .autoCv { position: absolute; inset: 0; z-index: 4; cursor: crosshair; width: 100%; height: 100%; }

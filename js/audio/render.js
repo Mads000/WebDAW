@@ -40,8 +40,10 @@
 
             tr.regions.forEach(r => {
                 if (tr.type === 'audio') {
-                    const t = r.startBar * spb;
-                    events.push({ t, fn: () => WD.channel.startRegionSource(oc, strip.input, r, t, 0, r.lengthBars * spb) });
+                    WD.model.audioPieces(r).forEach(pc => {
+                        const t = pc.startBar * spb;
+                        events.push({ t, fn: () => WD.channel.startRegionSource(oc, strip.input, pc, t, 0, pc.lengthBars * spb) });
+                    });
                     return;
                 }
                 const L = r.loopLen || r.lengthBars;

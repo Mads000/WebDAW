@@ -58,6 +58,7 @@ Zweizeilige Kopfleiste statt 25 gleichwertiger Knöpfe, Transport und LCD in der
 - **Transport:** Pause, Zum Anfang, sampelgenauer Cycle, Punch, echte Taktarten, Zeitanzeige
 - **Aufnahme:** unkomprimiert, Takes, Mehrspur, Kanalwahl, Monitoring, Latenzausgleich und -messung, Sicherung schon während der Aufnahme, **Stimmgerät**
 - **Spuren:** Pan, Record-Arm, Monitoring, Farbe, Verschieben, Duplizieren, Doppeln, Harmonie
+- **Loops:** Jede Region, auch eingespielte Aufnahmen, lässt sich loopen: Ecke oben rechts ziehen, Taste L (bis zur nächsten Region oder zum Songende) oder Kontextmenü. Loop entfernen, Loop auflösen in einzelne Regionen, Teilen im Loop. Am berechneten Signal geprüft (`tests/loop.mjs`).
 - **Timeline:** Zoom mit Raster, Snap, Mehrfachauswahl, Kopieren und Einfügen, Alt-Kopie, Spurwechsel, Abschnitte samt Inhalt verschieben, duplizieren und löschen
 - **Editor:** Zoom, Raster, Quantisieren, Velocity-Spur, Mehrfachauswahl, Kopieren, Transponieren; Drums im selben Editor
 - **Mixer:** neu, mit Pegeln und Master

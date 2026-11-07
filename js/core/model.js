@@ -131,12 +131,29 @@
             const f = v / p.bpm;
             bus.emit('tempo:before');
             p.tracks.forEach(t => {
-                if (t.type === 'audio') t.regions.forEach(r => { r.lengthBars *= f; });
+                if (t.type === 'audio') t.regions.forEach(r => { r.lengthBars *= f; if (r.loopLen) r.loopLen *= f; });
             });
             p.bpm = v;
             bus.emit('tempo');
             bus.emit('tracks');
             return v;
+        },
+
+        // Loop: loopLen ist die Länge des Inhalts, lengthBars die Länge samt Wiederholungen
+        isLooped: r => !!r.loopLen && r.loopLen < r.lengthBars - 1e-6,
+        // Eine geloopte Audio-Region als Folge einzelner Durchgänge; jeder spielt wie eine eigene Region.
+        // Fade-In gilt nur am Anfang, Fade-Out nur am Ende.
+        audioPieces(r) {
+            if (!M.isLooped(r)) return [r];
+            const L = r.loopLen, end = r.startBar + r.lengthBars, out = [];
+            for (let k = 0; r.startBar + k * L < end - 1e-6; k++) {
+                const s = r.startBar + k * L, len = Math.min(L, end - s);
+                out.push(Object.assign({}, r, {
+                    startBar: s, lengthBars: len, loopLen: 0, loopIdx: k,
+                    fadeIn: k ? 0 : r.fadeIn, fadeOut: s + len >= end - 1e-6 ? r.fadeOut : 0,
+                }));
+            }
+            return out;
         },
 
         // Ende des letzten Inhalts in Bar-Einheiten

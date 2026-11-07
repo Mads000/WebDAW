@@ -95,9 +95,11 @@
         const tx = WD.history.begin('Region-Länge');
         const sx = e.clientX, orig = r.lengthBars;
         if (!r.bufId && !r.loopLen) r.loopLen = r.lengthBars;
+        // Ungeloopte Audio-Regionen enden mit der Aufnahme; geloopte dürfen beliebig weiterlaufen
         const maxLen = () => {
             const buf = WD.audioStore.get(r.bufId);
-            return buf ? Math.max(0.02, (buf.duration - (r.offset || 0)) / (r.rate || 1) / M.secPerBar()) : Infinity;
+            if (!buf || r.loopLen) return Infinity;
+            return Math.max(0.02, (buf.duration - (r.offset || 0)) / (r.rate || 1) / M.secPerBar());
         };
         capture(e, ev => {
             const end = V.snap(r.startBar + orig + (ev.clientX - sx) / WD.view.ppb, ev);
@@ -106,16 +108,37 @@
         }, () => { tx.end(); if (r.bufId) bus.emit('audio:edited'); bus.emit('editor:refresh'); });
     }
 
+    // Loop-Griff: Ziehen wiederholt den Inhalt der Region bis zur neuen Länge
+    function startLoopDrag(e, tr, r) {
+        const tx = WD.history.begin('Region loopen');
+        const sx = e.clientX, orig = r.lengthBars;
+        const setLoop = !r.loopLen;
+        if (setLoop) r.loopLen = r.lengthBars;
+        capture(e, ev => {
+            const end = V.snap(r.startBar + orig + (ev.clientX - sx) / WD.view.ppb, ev);
+            r.lengthBars = Math.max(Math.min(r.loopLen, V.gridStep() / 2), end - r.startBar);
+            bus.emit('regions');
+        }, () => {
+            // Nicht über den Inhalt hinaus gezogen: kein Loop
+            if (setLoop && r.lengthBars <= r.loopLen + 1e-6) r.loopLen = 0;
+            tx.end();
+            if (r.bufId) bus.emit('audio:edited');
+            bus.emit('regions'); bus.emit('editor:refresh');
+        });
+    }
+
     function startResizeLeft(e, tr, r) {
         const tx = WD.history.begin('Region trimmen');
-        const sx = e.clientX, s0 = r.startBar, l0 = r.lengthBars, off0 = r.offset || 0;
+        const sx = e.clientX, s0 = r.startBar, l0 = r.lengthBars, off0 = r.offset || 0, loop0 = r.loopLen || 0;
         const rate = r.rate || 1;
         capture(e, ev => {
             let start = V.snap(s0 + (ev.clientX - sx) / WD.view.ppb, ev);
             let d = start - s0;
             d = Math.min(d, l0 - V.gridStep() / 2);
+            if (loop0) d = Math.min(d, loop0 - V.gridStep() / 2);
             if (off0 + d * M.secPerBar() * rate < 0) d = -off0 / (M.secPerBar() * rate);
             r.startBar = s0 + d; r.lengthBars = l0 - d;
+            if (loop0) r.loopLen = loop0 - d; // der Inhalt wird vorne gekürzt, also auch jeder Durchgang
             r.offset = off0 + d * M.secPerBar() * rate;
             bus.emit('regions');
         }, () => { tx.end(); bus.emit('audio:edited'); bus.emit('editor:refresh'); });
@@ -167,7 +190,8 @@
         } else if (!sel.has(r.id)) {
             Ops.selectOnly([r.id]);
         }
-        if (e.target.classList.contains('rsz')) startResizeRight(e, track, r);
+        if (e.target.classList.contains('rloop')) startLoopDrag(e, track, r);
+        else if (e.target.classList.contains('rsz')) startResizeRight(e, track, r);
         else if (e.target.classList.contains('rszL')) startResizeLeft(e, track, r);
         else startMove(e, track, r);
     });

@@ -37,6 +37,7 @@
                 { label: 'Löschen', shortcut: 'Entf', disabled: !sel, action: () => Ops().remove() },
                 { sep: 1 },
                 { label: 'Am Playhead teilen', shortcut: 'Strg+T', action: () => Ops().splitAtPlayhead() },
+                { label: 'Loopen bis Songende / Loop entfernen', shortcut: 'L', disabled: !sel, action: () => Ops().toggleLoop() },
                 { label: 'Alles auswählen', shortcut: 'Strg+A', action: () => Ops().selectAll() },
             ];
         },

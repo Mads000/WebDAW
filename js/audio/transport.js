@@ -86,7 +86,9 @@
                 const end = r.startBar + r.lengthBars;
                 if (end <= a || r.startBar >= b) return;
                 if (tr.type === 'audio') {
-                    if (r.startBar >= a && r.startBar < b) startRegion(tr, r, timeOf(r.startBar), 0, b);
+                    M.audioPieces(r).forEach(pc => {
+                        if (pc.startBar >= a && pc.startBar < b) startRegion(tr, pc, timeOf(pc.startBar), 0, b);
+                    });
                     return;
                 }
                 const L = r.loopLen || r.lengthBars;
@@ -122,11 +124,11 @@
         const spb = M.secPerBar();
         WD.project.tracks.forEach(tr => {
             if (tr.type !== 'audio') return;
-            tr.regions.forEach(r => {
-                if (r.startBar < pos && r.startBar + r.lengthBars > pos) {
-                    startRegion(tr, r, when, (pos - r.startBar) * spb, pos);
+            tr.regions.forEach(r => M.audioPieces(r).forEach(pc => {
+                if (pc.startBar < pos && pc.startBar + pc.lengthBars > pos) {
+                    startRegion(tr, pc, when, (pos - pc.startBar) * spb, pos);
                 }
-            });
+            }));
         });
     }
 

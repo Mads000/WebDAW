@@ -67,6 +67,7 @@
         switch (key) {
             case 'r': WD.recorder.toggle(); break;
             case 'c': T.toggleCycle(); break;
+            case 'l': WD.regionOps.toggleLoop(); break;
             case 'n': WD.project.metronome = !WD.project.metronome; WD.topbar.refreshToggles(); break;
             case 'm': {
                 const t = WD.model.selTrack();

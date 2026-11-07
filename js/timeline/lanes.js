@@ -25,15 +25,20 @@
             return;
         }
         const bin = WD.audioStore.BIN, sr = buf.sampleRate, rate = r.rate || 1;
-        const lenSec = r.lengthBars * WD.model.secPerBar();
+        const spb = WD.model.secPerBar();
+        const lenSec = r.lengthBars * spb;
+        const looped = WD.model.isLooped(r), segSec = looped ? r.loopLen * spb : lenSec;
         const vol = r.gain === undefined ? 1 : r.gain;
-        g.fillStyle = 'rgba(255,255,255,.82)';
         const mid = h / 2, amp = h / 2 - 1;
         const total = peaks.length / 2;
         for (let x = 0; x < w; x++) {
-            const t0 = (r.offset || 0) + (x / w) * lenSec * rate, t1 = (r.offset || 0) + ((x + 1) / w) * lenSec * rate;
+            // Bei Loops beginnt jeder Durchgang wieder am Anfang des Inhalts
+            const p0 = (x / w) * lenSec, k = Math.floor(p0 / segSec + 1e-9);
+            const q0 = p0 - k * segSec, q1 = Math.min(segSec, ((x + 1) / w) * lenSec - k * segSec);
+            g.fillStyle = k ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.82)';
+            const t0 = (r.offset || 0) + q0 * rate, t1 = (r.offset || 0) + q1 * rate;
             let i0 = Math.floor(t0 * sr / bin), i1 = Math.max(i0 + 1, Math.ceil(t1 * sr / bin));
-            if (i0 >= total) break;
+            if (i0 >= total) continue;
             i1 = Math.min(i1, total);
             let mn = 1, mx = -1;
             for (let i = i0; i < i1; i++) {
@@ -50,6 +55,10 @@
         };
         if (r.fadeIn > 0) fade(0, r.fadeIn / lenSec * w, 1, 0);
         if (r.fadeOut > 0) fade(w - r.fadeOut / lenSec * w, w, 0, 1);
+        if (looped) {
+            g.fillStyle = 'rgba(0,0,0,.5)';
+            for (let k = 1; k * segSec < lenSec - 1e-6; k++) g.fillRect(Math.round(k * segSec / lenSec * w), 0, 1, h);
+        }
     }
 
     function drawNotes(cv, tr, r, w, h) {
@@ -81,8 +90,9 @@
     }
 
     function labelOf(r) {
-        const loop = !r.bufId && (r.loopLen || r.lengthBars) < r.lengthBars - 1e-6;
-        return (r.name || 'Region') + (loop ? ' ↻' : '');
+        if (!WD.model.isLooped(r)) return r.name || 'Region';
+        const n = r.lengthBars / r.loopLen;
+        return (r.name || 'Region') + ' ↻ ' + (Math.abs(n - Math.round(n)) < 0.01 ? Math.round(n) : n.toFixed(1)) + '×';
     }
 
     function syncRegion(tr, r, lane) {
@@ -91,7 +101,8 @@
         if (!c) {
             const canvas = el('canvas');
             const head = el('div', { class: 'rhead' });
-            const node = el('div', { class: 'region', dataset: { id: r.id } }, canvas, head, el('div', { class: 'rsz' }));
+            const node = el('div', { class: 'region', dataset: { id: r.id } }, canvas, head, el('div', { class: 'rsz' }),
+                el('div', { class: 'rloop', 'data-tip': 'Ziehen: Region wiederholen (Loop). Taste L: bis Songende' }));
             c = { node, canvas, head, key: '' };
             cache.set(r.id, c);
         }

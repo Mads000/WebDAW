@@ -8,7 +8,26 @@
     const clone = r => JSON.parse(JSON.stringify(r));
 
     // Teilt eine Region an einer Position, Rückgabe ist der rechte Teil. Geloopte MIDI-Regionen werden dabei ausgeschrieben.
+    // Eine geloopte Audio-Region in einzelne Regionen je Durchgang zerlegen; r wird zum ersten Durchgang
+    function expandAudioLoop(tr, r) {
+        const pieces = M.audioPieces(r);
+        if (pieces.length < 2) return [r];
+        const out = [r];
+        pieces.slice(1).forEach(pc => {
+            const c = Object.assign(clone(pc), { id: uid() });
+            delete c.loopIdx;
+            tr.regions.push(c); out.push(c);
+        });
+        Object.assign(r, { lengthBars: pieces[0].lengthBars, loopLen: 0, fadeOut: 0 });
+        return out;
+    }
+
     function splitAt(tr, r, bar) {
+        if (r.bufId && M.isLooped(r)) {
+            const parts = expandAudioLoop(tr, r);
+            r = parts.find(p => bar > p.startBar + 1e-6 && bar < p.startBar + p.lengthBars - 1e-6);
+            if (!r) return parts.find(p => Math.abs(p.startBar - bar) < 1e-6) || null;
+        }
         const cut = bar - r.startBar;
         if (cut <= 1e-6 || cut >= r.lengthBars - 1e-6) return null;
         let r2;
@@ -139,9 +158,50 @@
             });
         },
 
+        // Loopt die Regionen bis zur nächsten Region auf derselben Spur oder bis zum Songende
+        loopToEnd(targets = M.selRegions()) {
+            if (!targets.length) { WD.ui.toast('Keine Region ausgewählt.'); return; }
+            const songEnd = M.contentEnd();
+            WD.history.run('Loopen', () => targets.forEach(({ track, region: r }) => {
+                const L = r.loopLen && r.loopLen < r.lengthBars ? r.loopLen : r.lengthBars;
+                const myEnd = r.startBar + r.lengthBars;
+                const next = track.regions.filter(x => x !== r && x.startBar >= myEnd - 1e-6).map(x => x.startBar);
+                let end = next.length ? Math.min(...next) : songEnd;
+                if (end <= myEnd + 1e-6) end = r.startBar + 4 * L; // schon am Ende: vier Durchgänge
+                if (end <= myEnd + 1e-6) return;
+                r.loopLen = L;
+                r.lengthBars = end - r.startBar;
+            }));
+            notify(targets.some(x => x.region.bufId));
+            bus.emit('editor:refresh');
+        },
+        // Nimmt die Wiederholungen weg; übrig bleibt ein Durchgang
+        removeLoop(targets = M.selRegions()) {
+            const looped = targets.filter(x => M.isLooped(x.region));
+            if (!looped.length) return;
+            WD.history.run('Loop entfernen', () => looped.forEach(({ region: r }) => {
+                r.lengthBars = r.loopLen; r.loopLen = 0;
+            }));
+            notify(looped.some(x => x.region.bufId));
+            bus.emit('editor:refresh');
+        },
+        // Taste L: ausgewählte Regionen loopen, oder den Loop entfernen, wenn alle schon geloopt sind
+        toggleLoop() {
+            const sel = M.selRegions();
+            if (!sel.length) { WD.ui.toast('Erst eine Region auswählen, dann L drücken.'); return; }
+            if (sel.every(x => M.isLooped(x.region))) Ops.removeLoop(sel); else Ops.loopToEnd(sel.filter(x => !M.isLooped(x.region)));
+        },
+
         // Schreibt eine geloopte Region aus, sodass jede Wiederholung einzeln bearbeitbar ist
         unloop(tr, r) {
-            if (r.bufId || !(r.loopLen && r.loopLen < r.lengthBars)) return;
+            if (!M.isLooped(r)) return;
+            if (r.bufId) {
+                let parts = [];
+                WD.history.run('Loop auflösen', () => { parts = expandAudioLoop(tr, r); });
+                WD.view.selRegionIds = new Set(parts.map(p => p.id));
+                notify(true);
+                return;
+            }
             WD.history.run('Loop auflösen', () => {
                 const L = r.loopLen, out = [];
                 r.notes.forEach(nt => {
@@ -168,7 +228,10 @@
                 { label: 'Kopieren', shortcut: 'Strg+C', action: Ops.copy },
                 { label: 'Ausschneiden', shortcut: 'Strg+X', action: Ops.cut },
                 { label: 'Einfügen am Playhead', shortcut: 'Strg+V', disabled: !clipboard, action: Ops.paste },
-                !region.bufId && { label: 'Loop auflösen', icon: 'loop', disabled: !(region.loopLen && region.loopLen < region.lengthBars), action: () => Ops.unloop(track, region) },
+                { sep: 1 },
+                { label: n > 1 ? `${n} Regionen loopen bis Songende` : 'Loopen bis Songende', icon: 'loop', shortcut: 'L', action: () => Ops.loopToEnd() },
+                { label: 'Loop entfernen', disabled: !M.selRegions().some(x => M.isLooped(x.region)), action: () => Ops.removeLoop() },
+                { label: 'Loop auflösen (einzeln bearbeitbar)', disabled: !M.isLooped(region), action: () => Ops.unloop(track, region) },
                 {
                     label: 'Cycle auf diese Region', icon: 'cycle', action: () => {
                         WD.history.run('Cycle-Bereich', () => {

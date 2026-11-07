@@ -6,7 +6,7 @@ Wird nach jeder Phase aktualisiert.
 
 - **Phase:** alle 9 Phasen abgeschlossen
 - **Starten:** `start-webdaw.bat` oder `index.html` doppelklicken (Chrome oder Edge); online unter https://mads000.github.io/WebDAW/, dort als App installierbar und offline nutzbar
-- **Tests:** `tests/e2e.mjs` 133/133, `tests/e2e-mouse.mjs` 44/44, `tests/offline.mjs` 7/7
+- **Tests:** `tests/e2e.mjs` 133/133, `tests/e2e-mouse.mjs` 44/44, `tests/offline.mjs` 7/7, `tests/loop.mjs` 16/16
 - **Noch nicht geprüft:** echte Instrumente, echtes Interface und Hören (siehe „Als Nächstes“)
 - **Sicherung:** `_backup_original/` (alle drei Original-HTML-Dateien, schreibgeschützt)
 - **Bericht:** [docs/BERICHT.md](docs/BERICHT.md) · Analyse: [docs/ANALYSE.md](docs/ANALYSE.md) · Musik: [docs/MUSIK.md](docs/MUSIK.md)
@@ -43,7 +43,12 @@ Tests unter echten Doppelklick-Bedingungen. Gefundene und behobene Fehler der ne
 ### Danach – Veröffentlichung ✅
 Startdatei `start-webdaw.bat`, GitHub-Repository Mads000/WebDAW, GitHub Pages, installierbare App mit Offline-Start (Service Worker `sw.js`, `manifest.webmanifest`, `icons/`).
 
+### Loops für alle Regionen ✅
+Audio-Aufnahmen und MIDI-/Drum-Regionen lassen sich loopen: Loop-Griff oben rechts, Taste L, Kontext- und Bearbeiten-Menü. Wiedergabe, Export, Wellenform, Teilen, Auflösen, Rückgängig und Tempowechsel berücksichtigen den Loop.
+
 ## Offene Fehler
+
+- **„Demos lassen sich nicht laden“ (gemeldet am 08.11.2026):** In Chrome und Opera GX (frisches Profil) per Maus und Touch nicht nachstellbar; Menü Song → Demo lädt, auch mit Speichern-Rückfrage. Rückmeldung zu Ort (online, App, `.bat`) und Verhalten steht aus.
 
 - **„Seite hat sich aufgehangen“ (online, gemeldet am 07.11.2026):** In Tests nicht nachstellbar (Hauptthread höchstens 0,13 s belegt, Demos, Wiedergabe und Neuladen ohne Fehler). Details zu Gerät, Browser und letzter Aktion fehlen noch.
 
