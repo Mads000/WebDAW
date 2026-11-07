@@ -125,7 +125,7 @@
     {
       "name": "F2: Tempo-Wechsel ohne Sprung",
       "ok": true,
-      "detail": "0.195 → 0.245"
+      "detail": "0.195 → 0.259"
     },
     {
       "name": "Pause hält die Position",
@@ -275,17 +275,17 @@
     {
       "name": "Aufnahme erzeugt Region",
       "ok": true,
-      "detail": "{\"sec\":2.469333333333335,\"dur\":2.469333333333333,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":439.79481641468686}"
+      "detail": "{\"sec\":2.4586666666666677,\"dur\":2.458666666666667,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":440.0759219088937}"
     },
     {
       "name": "Dauer plausibel",
       "ok": true,
-      "detail": "2.47"
+      "detail": "2.46"
     },
     {
       "name": "Audiosignal des Eingangs kommt unverfälscht an (440 Hz)",
       "ok": true,
-      "detail": "439.8 Hz, Peak 0.49"
+      "detail": "440.1 Hz, Peak 0.49"
     },
     {
       "name": "F9: Mikrofon nach der Aufnahme wieder geschlossen",
@@ -305,7 +305,7 @@
     {
       "name": "F4: Cycle beendet Aufnahme nicht, je Runde ein Take",
       "ok": true,
-      "detail": "{\"n\":4,\"idx\":2,\"len\":0.5,\"buf\":true}"
+      "detail": "{\"n\":4,\"idx\":2,\"len\":0.5000000000000009,\"buf\":true}"
     },
     {
       "name": "Take-Länge entspricht Cycle",
@@ -370,7 +370,7 @@
     {
       "name": "Stimmgerät erkennt das Eingangssignal (440 Hz)",
       "ok": true,
-      "detail": "440.00005271418763"
+      "detail": "440.00003295465683"
     },
     {
       "name": "Stimmgerät schließt das Mikrofon wieder",
@@ -400,7 +400,7 @@
     {
       "name": "Latenzausgleich: Impuls landet am richtigen Takt (Ausgleich 165 ms)",
       "ok": true,
-      "detail": "0.15 ms Abweichung"
+      "detail": "-0.00 ms Abweichung"
     },
     {
       "name": "Abschnitt verschieben nimmt Inhalt mit",
@@ -470,7 +470,7 @@
     {
       "name": "K3: Autosave mit 3 Minuten Audio läuft",
       "ok": true,
-      "detail": "Automatisch gesichert 21:38"
+      "detail": "Automatisch gesichert 23:26"
     },
     {
       "name": "K3: Nach Neuladen wird Wiederherstellung angeboten",
@@ -575,7 +575,7 @@
     {
       "name": "Bounce nicht stumm",
       "ok": true,
-      "detail": "0.119"
+      "detail": "0.118"
     },
     {
       "name": "Stems: je Spur eine Datei",

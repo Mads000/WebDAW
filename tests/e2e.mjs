@@ -9,7 +9,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shots = join(root, 'docs', 'screenshots', 'neu');
 const dl = join(process.env.TEMP || '.', 'webdaw-e2e-dl');
 rmSync(dl, { recursive: true, force: true }); mkdirSync(dl, { recursive: true }); mkdirSync(shots, { recursive: true });
-const url = pathToFileURL(join(root, 'index.html')).href;
+// WEBDAW_URL testet eine andere Adresse, z. B. die GitHub-Pages-Version
+const url = process.env.WEBDAW_URL || pathToFileURL(join(root, 'index.html')).href;
 
 function sineWav(path, seconds, freq = 440, right = 0) {
     const sr = 48000, n = sr * seconds, b = Buffer.alloc(44 + n * 4);
