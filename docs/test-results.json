@@ -1,0 +1,671 @@
+{
+  "total": 133,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Lädt ohne Fehler über file://",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "AudioWorklets über file:// geladen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Drei Spurtypen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "K5: Spuren exakt am Lineal ausgerichtet",
+      "ok": true,
+      "detail": "0,0,0"
+    },
+    {
+      "name": "F14: Keine HTML-Injection über Namen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F13: Automation-Knopf nicht dauerhaft aktiv",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F1: Leertaste nach Klick auf Regler",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F16: Leeres Tempo wird abgewiesen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Doppelklick legt Region an und öffnet Editor",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F12: Anklicken erzeugt keinen Undo-Schritt",
+      "ok": true,
+      "detail": "Region anlegen"
+    },
+    {
+      "name": "Region per Maus verschiebbar (am Raster)",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "name": "Undo setzt Position zurück, Selektion bleibt gültig",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F7: Teilen behält Velocity",
+      "ok": true,
+      "detail": "[{\"s\":0,\"l\":1.5,\"v\":[0.5,0.5,0.8]},{\"s\":1.5,\"l\":0.5,\"v\":[0.8]}]"
+    },
+    {
+      "name": "Kopieren und Einfügen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mehrfachauswahl duplizieren",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Undo über mehrere Schritte",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Taste Entf löscht Auswahl",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Note aufziehen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Note hat gezogene Länge",
+      "ok": true,
+      "detail": "0.375"
+    },
+    {
+      "name": "Entf löscht ausgewählte Note",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Quantisieren auf 1/16",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F20: Drum-Editor zeigt 32 Takte",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F20: Pattern-Auswahl zeigt echte Länge",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F3: Cycle sampelgenau (Soll 1,000 s)",
+      "ok": true,
+      "detail": "1.000000, 1.000000, 1.000000"
+    },
+    {
+      "name": "F2: Tempo-Wechsel ohne Sprung",
+      "ok": true,
+      "detail": "0.195 → 0.245"
+    },
+    {
+      "name": "Pause hält die Position",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Zum Anfang",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Taktart wirkt wirklich: 3/4 → Taktlänge",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Taktart: Position 2.2 in 3/4",
+      "ok": true,
+      "detail": "{\"bar\":2,\"beat\":2,\"sub\":1}"
+    },
+    {
+      "name": "Taktart zurück auf 4/4",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Undo stellt Master-Klang wieder her",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F6: Audio-Dauer bleibt beim Tempowechsel gleich",
+      "ok": true,
+      "detail": "2 / 1.9999999999999996"
+    },
+    {
+      "name": "P2: Undo baut Audio-Knoten wirklich ab",
+      "ok": true,
+      "detail": "3 → 8 → 3"
+    },
+    {
+      "name": "Equalizer: Höhen +12 dB",
+      "ok": true,
+      "detail": "3.62"
+    },
+    {
+      "name": "Equalizer: Bässe -12 dB",
+      "ok": true,
+      "detail": "0.25"
+    },
+    {
+      "name": "Equalizer: Mitten +6 dB",
+      "ok": true,
+      "detail": "2.00"
+    },
+    {
+      "name": "Kompressor senkt laute Signale",
+      "ok": true,
+      "detail": "0.473"
+    },
+    {
+      "name": "Overdrive erzeugt Obertöne",
+      "ok": true,
+      "detail": "0.0000 → 0.326"
+    },
+    {
+      "name": "Distortion ist stärker als Overdrive",
+      "ok": true,
+      "detail": "0.326 → 0.336"
+    },
+    {
+      "name": "Drive ist bei Stille still (kein Gleichanteil)",
+      "ok": true,
+      "detail": "0.00e+0"
+    },
+    {
+      "name": "Chorus erzeugt Stereo-Unterschied",
+      "ok": true,
+      "detail": "0.1743"
+    },
+    {
+      "name": "Bitcrush reduziert die Auflösung hörbar",
+      "ok": true,
+      "detail": "0.000 → 0.926 gehaltene Samples"
+    },
+    {
+      "name": "Hochpass dämpft 50 Hz",
+      "ok": true,
+      "detail": "0.004"
+    },
+    {
+      "name": "Tiefpass dämpft 8 kHz",
+      "ok": true,
+      "detail": "0.001"
+    },
+    {
+      "name": "Noise Gate schließt bei leisem Signal",
+      "ok": true,
+      "detail": "0.00e+0"
+    },
+    {
+      "name": "Noise Gate lässt lautes Signal durch",
+      "ok": true,
+      "detail": "0.354"
+    },
+    {
+      "name": "Spur-Limiter hält die Grenze (-6 dB)",
+      "ok": true,
+      "detail": "0.5012"
+    },
+    {
+      "name": "Doubler erzeugt Stereo-Unterschied",
+      "ok": true,
+      "detail": "0.0654"
+    },
+    {
+      "name": "Hall erzeugt echten Ausklang",
+      "ok": true,
+      "detail": "Ausklang 0.0113, ohne Hall 0.0e+0"
+    },
+    {
+      "name": "Delay erzeugt echte Wiederholung",
+      "ok": true,
+      "detail": "0.0452"
+    },
+    {
+      "name": "Panorama",
+      "ok": true,
+      "detail": "L 0.212 R 0.0000"
+    },
+    {
+      "name": "A2: Master-Limiter begrenzt +9,5 dB auf -1 dB",
+      "ok": true,
+      "detail": "0.8913"
+    },
+    {
+      "name": "A1: Master ist neutral unterhalb der Grenze",
+      "ok": true,
+      "detail": "1.000"
+    },
+    {
+      "name": "Eingang während Aufnahme geöffnet",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Aufnahme erzeugt Region",
+      "ok": true,
+      "detail": "{\"sec\":2.469333333333335,\"dur\":2.469333333333333,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":439.79481641468686}"
+    },
+    {
+      "name": "Dauer plausibel",
+      "ok": true,
+      "detail": "2.47"
+    },
+    {
+      "name": "Audiosignal des Eingangs kommt unverfälscht an (440 Hz)",
+      "ok": true,
+      "detail": "439.8 Hz, Peak 0.49"
+    },
+    {
+      "name": "F9: Mikrofon nach der Aufnahme wieder geschlossen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Undo entfernt nur die Aufnahme",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Redo bringt Aufnahme zurück",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F4: Cycle beendet Aufnahme nicht, je Runde ein Take",
+      "ok": true,
+      "detail": "{\"n\":4,\"idx\":2,\"len\":0.5,\"buf\":true}"
+    },
+    {
+      "name": "Take-Länge entspricht Cycle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Punch nimmt nur im Bereich auf",
+      "ok": true,
+      "detail": "{\"s\":0.5,\"l\":0.5}"
+    },
+    {
+      "name": "F8: Stop im Einzähler bricht sauber ab",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F8: Abbruch hinterlässt kein offenes Mikrofon",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Monitoring öffnet Eingang",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Monitoring: Eingang läuft durch den Kanalzug",
+      "ok": true,
+      "detail": "0.243"
+    },
+    {
+      "name": "Monitoring aus schließt Eingang",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mehrspur: zwei Spuren gleichzeitig",
+      "ok": true,
+      "detail": "1,1"
+    },
+    {
+      "name": "K1: MIDI-Aufnahme zeichnet Einzelnoten auf",
+      "ok": true,
+      "detail": "[{\"n\":60,\"d\":0.0625},{\"n\":62,\"d\":0.0625},{\"n\":64,\"d\":0.0625}]"
+    },
+    {
+      "name": "K1: Akkorde werden aufgezeichnet",
+      "ok": true,
+      "detail": "7"
+    },
+    {
+      "name": "K1: Tastendauer wird übernommen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Tonerkennung: Gitarren- und Ukulele-Töne innerhalb 2 Cent",
+      "ok": true,
+      "detail": "{\"110\":109.99995592950484,\"196\":195.99982743057546,\"392\":391.9999600630338,\"440\":439.99960258008565,\"82.41\":82.40996520417808,\"329.63\":329.6295282166425}"
+    },
+    {
+      "name": "Stimmgerät erkennt das Eingangssignal (440 Hz)",
+      "ok": true,
+      "detail": "440.00005271418763"
+    },
+    {
+      "name": "Stimmgerät schließt das Mikrofon wieder",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Latenzmessung erkennt künstliche 17,3 ms",
+      "ok": true,
+      "detail": "17.29 ms"
+    },
+    {
+      "name": "Latenzmessung lehnt Stille ab",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Latenzmessung lehnt Dauerton statt Klicks ab",
+      "ok": true,
+      "detail": "null"
+    },
+    {
+      "name": "Latenzmessung schließt das Mikrofon wieder",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Latenzausgleich: Impuls landet am richtigen Takt (Ausgleich 165 ms)",
+      "ok": true,
+      "detail": "0.15 ms Abweichung"
+    },
+    {
+      "name": "Abschnitt verschieben nimmt Inhalt mit",
+      "ok": true,
+      "detail": "{\"m\":[\"Verse:0\",\"Intro:8\",\"Chorus:12\"],\"r\":[\"A:8\",\"B:0\"]}"
+    },
+    {
+      "name": "Abschnitt duplizieren mit Inhalt",
+      "ok": true,
+      "detail": "{\"m\":[\"Intro:0\",\"Verse:4\",\"Verse:12\",\"Chorus:20\"],\"n\":3}"
+    },
+    {
+      "name": "Abschnitt löschen mit Inhalt rückt nach",
+      "ok": true,
+      "detail": "{\"m\":[\"Intro:0\",\"Verse:4\",\"Chorus:12\"],\"n\":2}"
+    },
+    {
+      "name": "Audio-Import",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Speichern meldet Erfolg",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Export als .webdaw",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Projekt übersteht Neuladen",
+      "ok": true,
+      "detail": "{\"n\":5,\"key\":\"D\",\"mute\":true,\"cycle\":{\"on\":true,\"a\":1,\"b\":3},\"mode\":\"warm\",\"ch\":2,\"l\":0.34527141464260974,\"r\":0}"
+    },
+    {
+      "name": "K4: Stereo bleibt erhalten",
+      "ok": true,
+      "detail": "2 Kanäle, L 0.345 R 0.0000"
+    },
+    {
+      "name": "F18: Mute, Tonart, Cycle, Master gespeichert",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "K2: Kaputte Datei → verständliche Meldung",
+      "ok": true,
+      "detail": "In der Datei fehlt die Spurliste; sie ist vermutlich beschädigt oder kein WebDAW-Projekt. Dein aktuelles Projekt ist unverändert."
+    },
+    {
+      "name": "K2: Offenes Projekt bleibt unversehrt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Altes .json-Projekt öffnet, mit Audio und altem Master-Klang",
+      "ok": true,
+      "detail": "{\"bpm\":100,\"mode\":\"warm\",\"t\":2,\"buf\":true,\"rev\":0.3,\"name\":\"Alt <b>\"}"
+    },
+    {
+      "name": ".webdaw-Datei liest Stereo-Audio zurück",
+      "ok": true,
+      "detail": "{\"name\":\"Testprojekt\",\"ch\":2,\"len\":96000}"
+    },
+    {
+      "name": "K3: Autosave mit 3 Minuten Audio läuft",
+      "ok": true,
+      "detail": "Automatisch gesichert 21:38"
+    },
+    {
+      "name": "K3: Nach Neuladen wird Wiederherstellung angeboten",
+      "ok": true,
+      "detail": "Letzte Sitzung wiederherstellen?"
+    },
+    {
+      "name": "K3: 3 Minuten Stereo-Audio vollständig wiederhergestellt",
+      "ok": true,
+      "detail": "{\"name\":\"Autosave-Test\",\"dur\":180,\"ch\":2,\"s\":0.30000001192092896}"
+    },
+    {
+      "name": "K7: Abgelehntes Autosave bleibt als Sicherung",
+      "ok": true,
+      "detail": "Autosave-Test 2|Autosave, Testprojekt|Speichern, alt|Speichern"
+    },
+    {
+      "name": "Aufnahme übersteht Absturz/Neuladen",
+      "ok": true,
+      "detail": "Gerettete Aufnahme (Neues Projekt), Testprojekt, alt, Testprojekt"
+    },
+    {
+      "name": "Altes Autosave aus localStorage wird übernommen",
+      "ok": true,
+      "detail": "Autosave der alten Version, Gerettete Aufnahme (Neues Projekt), Testprojekt, alt, Testprojekt"
+    },
+    {
+      "name": "Altes Autosave bleibt unangetastet liegen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Vorlage \"Schnelle Idee\" ohne Fehler",
+      "ok": true,
+      "detail": "{\"n\":2,\"audio\":2,\"arm\":1}"
+    },
+    {
+      "name": "Vorlage \"Bedroom-Pop\" ohne Fehler",
+      "ok": true,
+      "detail": "{\"n\":9,\"audio\":5,\"arm\":1}"
+    },
+    {
+      "name": "Vorlage \"Indie-Rock organisch\" ohne Fehler",
+      "ok": true,
+      "detail": "{\"n\":8,\"audio\":5,\"arm\":1}"
+    },
+    {
+      "name": "Vorlage \"Gitarrenrock-Hymne\" ohne Fehler",
+      "ok": true,
+      "detail": "{\"n\":10,\"audio\":6,\"arm\":1}"
+    },
+    {
+      "name": "Vorlage \"Alt-Pop elektronisch\" ohne Fehler",
+      "ok": true,
+      "detail": "{\"n\":6,\"audio\":2,\"arm\":1}"
+    },
+    {
+      "name": "Demo \"Britpop-Demo\" lädt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Demo \"Ballade\" lädt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Demo \"Moll-Ballade\" lädt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Demo \"Akustik-Session\" lädt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Demo \"Rockin' Demo\" lädt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "K8: Lange Songs passen in die Zeitleiste",
+      "ok": true,
+      "detail": "Überhang -801"
+    },
+    {
+      "name": "F15: Zoom hält Regionen am Raster",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "P1: Rockin-Demo (122 s Musik) exportiert deutlich schneller als Echtzeit",
+      "ok": true,
+      "detail": "7.6 s Rechenzeit (Original: über 120 s, nicht fertig geworden)"
+    },
+    {
+      "name": "A2: Bounce ohne Clipping, unter -1 dB",
+      "ok": true,
+      "detail": "Peak 0.891"
+    },
+    {
+      "name": "Bounce nicht stumm",
+      "ok": true,
+      "detail": "0.119"
+    },
+    {
+      "name": "Stems: je Spur eine Datei",
+      "ok": true,
+      "detail": "6"
+    },
+    {
+      "name": "Stems: 24 Bit, nicht stumm",
+      "ok": true,
+      "detail": "24"
+    },
+    {
+      "name": "Audio-Region ist beim Abspielen hörbar",
+      "ok": true,
+      "detail": "0.226"
+    },
+    {
+      "name": "Mute wirkt auf das Signal",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "F21: Stop bricht klingende Noten ab",
+      "ok": true,
+      "detail": "0.0000"
+    },
+    {
+      "name": "Smart-Control-Knopf ändert die Spur per Maus",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Knopf-Geste ergibt einen Undo-Schritt",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Undo setzt Knopf zurück",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Klick in Bibliothek wechselt den Sound",
+      "ok": true,
+      "detail": "Tremolo Guitar → Marimba"
+    },
+    {
+      "name": "Menü öffnet Dialog",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Fenster 1920×1080: keine Überlappung, kein Überlauf",
+      "ok": true,
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":677}"
+    },
+    {
+      "name": "Fenster 1440×900: keine Überlappung, kein Überlauf",
+      "ok": true,
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":497}"
+    },
+    {
+      "name": "Fenster 1280×720: keine Überlappung, kein Überlauf",
+      "ok": true,
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":317}"
+    },
+    {
+      "name": "Fenster 1024×700: keine Überlappung, kein Überlauf",
+      "ok": true,
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":297}"
+    },
+    {
+      "name": "Fenster 800×600: keine Überlappung, kein Überlauf",
+      "ok": true,
+      "detail": "{\"ovf\":0,\"bar\":145,\"overlap\":0,\"arr\":191.109375}"
+    },
+    {
+      "name": "Fenster 420×780: keine Überlappung, kein Überlauf",
+      "ok": true,
+      "detail": "{\"ovf\":0,\"bar\":145,\"overlap\":0,\"arr\":315}"
+    },
+    {
+      "name": "P5: Im Leerlauf läuft keine Animationsschleife",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Keine nativen Browser-Dialoge verwendet",
+      "ok": true,
+      "detail": "[{\"type\":\"beforeunload\",\"message\":\"\",\"answered\":{\"accept\":true}}]"
+    }
+  ]
+}

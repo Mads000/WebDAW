@@ -1,0 +1,166 @@
+{
+  "total": 32,
+  "failed": 16,
+  "results": [
+    {
+      "name": "Seite lädt ohne JS-Fehler",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Spuren hinzufügen (Drum/Inst/Audio)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Spurname ohne HTML-Injection",
+      "ok": false,
+      "detail": "Name wird per innerHTML eingesetzt"
+    },
+    {
+      "name": "Doppelklick auf Drum-Spur legt Region an",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Piano Roll: Note per Ziehen gesetzt",
+      "ok": true,
+      "detail": "[{\"t\":0.125,\"n\":74,\"d\":0.3125}]"
+    },
+    {
+      "name": "Leertaste funktioniert nach Klick auf Master-Regler",
+      "ok": false,
+      "detail": "Fokus bleibt im <input>"
+    },
+    {
+      "name": "MIDI-Aufnahme: Tastatur-Noten werden aufgezeichnet",
+      "ok": false,
+      "detail": "Noten in Region: 0"
+    },
+    {
+      "name": "Audio-Aufnahme erzeugt Region",
+      "ok": true,
+      "detail": "log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x|log: Failed to load resource: net::ERR_FILE_NOT_FOUND file:///F:/WebDAW/_backup_original/x"
+    },
+    {
+      "name": "Undo direkt nach Aufnahme entfernt nur die Aufnahme",
+      "ok": true,
+      "detail": "vorher 1, nachher 0; Spuren 3"
+    },
+    {
+      "name": "Redo bringt Aufnahme zurück",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Reines Anklicken einer Region erzeugt keinen Undo-Schritt",
+      "ok": false,
+      "detail": "Regionen nach 1×Undo: 1"
+    },
+    {
+      "name": "Demo \"oasis\" lädt fehlerfrei",
+      "ok": true,
+      "detail": "6 Spuren "
+    },
+    {
+      "name": "Demo \"ballade\" lädt fehlerfrei",
+      "ok": true,
+      "detail": "8 Spuren "
+    },
+    {
+      "name": "Demo \"moll\" lädt fehlerfrei",
+      "ok": true,
+      "detail": "9 Spuren "
+    },
+    {
+      "name": "Demo \"akustik\" lädt fehlerfrei",
+      "ok": true,
+      "detail": "7 Spuren "
+    },
+    {
+      "name": "Demo \"rockin\" lädt fehlerfrei",
+      "ok": true,
+      "detail": "6 Spuren "
+    },
+    {
+      "name": "Rockin-Demo passt in die Timeline",
+      "ok": false,
+      "detail": "Regionen ragen 978 px über das Lineal hinaus"
+    },
+    {
+      "name": "Demo fragt vor Überschreiben des Projekts nach",
+      "ok": false,
+      "detail": "kein Dialog erschienen"
+    },
+    {
+      "name": "Oasis-Demo per Undo rückgängig",
+      "ok": false,
+      "detail": "Spuren jetzt 7, vorher 6"
+    },
+    {
+      "name": "Raster skaliert mit Zoom",
+      "ok": false,
+      "detail": "Takt = 235px, Raster fest bei 120px"
+    },
+    {
+      "name": "Bounce erzeugt WAV",
+      "ok": false,
+      "detail": "120.9 s, Bounce-Button aktiv: true, Fehler: -"
+    },
+    {
+      "name": "Audio-Import erzeugt Region",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Speichern erhält Stereo",
+      "ok": false,
+      "detail": "nur 96000 Samples (= 1 Kanal) gespeichert"
+    },
+    {
+      "name": "Projekt speichert Mute/Solo",
+      "ok": false,
+      "detail": "Felder fehlen"
+    },
+    {
+      "name": "Projekt speichert Tonart",
+      "ok": false,
+      "detail": "Felder fehlen"
+    },
+    {
+      "name": "Projekt speichert Cycle-Bereich",
+      "ok": false,
+      "detail": "Felder fehlen"
+    },
+    {
+      "name": "Kaputte Projektdatei lässt Projekt unversehrt",
+      "ok": true,
+      "detail": "Spuren vorher 7, nachher 7"
+    },
+    {
+      "name": "Kaputte Projektdatei: interner Zustand bleibt erhalten",
+      "ok": false,
+      "detail": "Anzeige 7 Spuren, gespeicherter Zustand 0 Spuren"
+    },
+    {
+      "name": "Kaputte Projektdatei → verständliche Meldung",
+      "ok": false,
+      "detail": "Fehler nur in Konsole: TypeError: Cannot read properties of undefined (reading 'forEach')\n   "
+    },
+    {
+      "name": "Leeres Tempofeld bricht Transport nicht",
+      "ok": true,
+      "detail": "Position \"1.1\" Fehler: -"
+    },
+    {
+      "name": "Autosave schreibt in localStorage",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Autosave enthält Audio",
+      "ok": false,
+      "detail": ""
+    }
+  ]
+}

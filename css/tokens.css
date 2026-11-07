@@ -1,0 +1,118 @@
+/* Design-Tokens. Dark ist der Standard; Light per System oder per data-theme. */
+:root {
+    color-scheme: dark;
+    --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+    --font-num: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+
+    --bg: #1b1c1f;
+    --bg-lane: #222327;
+    --bg-lane-sel: #2a2c31;
+    --surface: #2a2b2f;
+    --surface-2: #323338;
+    --surface-3: #3c3d43;
+    --topbar: linear-gradient(#3a3b40, #2d2e32);
+    --border: #111214;
+    --border-soft: #3f4046;
+    --text: #eceded;
+    --text-2: #a9abb1;
+    --text-3: #7c7e85;
+    --accent: #4d8eff;
+    --accent-text: #ffffff;
+    --sel: rgba(77, 142, 255, .22);
+
+    --lcd-bg: linear-gradient(#1a2024, #141a1d);
+    --lcd-text: #cfe9f2;
+    --lcd-dim: #6b8895;
+    --lcd-border: #000;
+
+    --rec: #e5484d;
+    --play: #3fbf6a;
+    --cycle: #e7b93a;
+    --solo: #e7b93a;
+    --mute: #5a8fd6;
+    --auto: #a97fff;
+
+    --grid-bar: rgba(255, 255, 255, .13);
+    --grid-beat: rgba(255, 255, 255, .055);
+    --grid-sub: rgba(255, 255, 255, .025);
+    --ruler-text: #a9abb1;
+    --playhead: #ffffff;
+    --meter-track: #15161a;
+    --roll-shade: rgba(0, 0, 0, .18);
+    --roll-outside: rgba(0, 0, 0, .26);
+
+    --radius: 6px;
+    --radius-lg: 10px;
+    --shadow: 0 10px 34px rgba(0, 0, 0, .55);
+    --head-w: 252px;
+    --ruler-h: 28px;
+    --arr-h: 24px;
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        color-scheme: light;
+        --bg: #e4e5e8;
+        --bg-lane: #eff0f2;
+        --bg-lane-sel: #e3e8f2;
+        --surface: #f6f6f7;
+        --surface-2: #e9eaec;
+        --surface-3: #dcdde1;
+        --topbar: linear-gradient(#f4f4f5, #dfe0e3);
+        --border: #b4b6bb;
+        --border-soft: #cdced3;
+        --text: #1d1e21;
+        --text-2: #55575e;
+        --text-3: #7d8088;
+        --accent: #2a6fe6;
+        --sel: rgba(42, 111, 230, .16);
+        --lcd-bg: linear-gradient(#dfe6e8, #cfd8db);
+        --lcd-text: #243138;
+        --lcd-dim: #66767e;
+        --lcd-border: #9aa2a6;
+        --grid-bar: rgba(0, 0, 0, .18);
+        --grid-beat: rgba(0, 0, 0, .08);
+        --grid-sub: rgba(0, 0, 0, .035);
+        --ruler-text: #55575e;
+        --playhead: #17181a;
+        --meter-track: #c9cbd0;
+        --roll-shade: rgba(0, 0, 0, .045);
+        --roll-outside: rgba(0, 0, 0, .1);
+        --shadow: 0 10px 30px rgba(0, 0, 0, .22);
+    }
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #e4e5e8;
+    --bg-lane: #eff0f2;
+    --bg-lane-sel: #e3e8f2;
+    --surface: #f6f6f7;
+    --surface-2: #e9eaec;
+    --surface-3: #dcdde1;
+    --topbar: linear-gradient(#f4f4f5, #dfe0e3);
+    --border: #b4b6bb;
+    --border-soft: #cdced3;
+    --text: #1d1e21;
+    --text-2: #55575e;
+    --text-3: #7d8088;
+    --accent: #2a6fe6;
+    --sel: rgba(42, 111, 230, .16);
+    --lcd-bg: linear-gradient(#dfe6e8, #cfd8db);
+    --lcd-text: #243138;
+    --lcd-dim: #66767e;
+    --lcd-border: #9aa2a6;
+    --grid-bar: rgba(0, 0, 0, .18);
+    --grid-beat: rgba(0, 0, 0, .08);
+    --grid-sub: rgba(0, 0, 0, .035);
+    --ruler-text: #55575e;
+    --playhead: #17181a;
+    --meter-track: #c9cbd0;
+    --roll-shade: rgba(0, 0, 0, .045);
+    --roll-outside: rgba(0, 0, 0, .1);
+    --shadow: 0 10px 30px rgba(0, 0, 0, .22);
+}
+
+@media (max-width: 900px) {
+    :root { --head-w: 196px; }
+}

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebDAW</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/topbar.css">
+    <link rel="stylesheet" href="css/timeline.css">
+    <link rel="stylesheet" href="css/panels.css">
+    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/mixer.css">
+    <link rel="stylesheet" href="css/overlays.css">
+</head>
+
+<body>
+    <header id="topbar">
+        <nav id="menubar">
+            <span id="brand">WebDAW</span>
+            <div id="menus"></div>
+            <div id="projectInfo"><span id="projectName"></span><span id="saveState"></span></div>
+        </nav>
+        <div id="controlbar">
+            <div class="cb-side cb-left">
+                <div class="btn-group">
+                    <button id="btnLibrary" class="tool" data-icon="library" data-tip="Bibliothek (V)"></button>
+                    <button id="btnSmart" class="tool" data-icon="knob" data-tip="Smart Controls (B)"></button>
+                    <button id="btnEditor" class="tool" data-icon="roll" data-tip="Editor (P)"></button>
+                    <button id="btnMixer" class="tool" data-icon="mixer" data-tip="Mixer (X)"></button>
+                </div>
+                <div class="btn-group">
+                    <button id="btnUndo" class="tool" data-icon="undo"></button>
+                    <button id="btnRedo" class="tool" data-icon="redo"></button>
+                </div>
+                <div class="btn-group hide-mid">
+                    <button id="btnSplit" class="tool" data-icon="scissors" data-tip="Region am Playhead teilen (Strg+T)"></button>
+                    <button id="btnDup" class="tool" data-icon="copy" data-tip="Region duplizieren (Strg+D)"></button>
+                    <button id="btnDel" class="tool" data-icon="trash" data-tip="Auswahl löschen (Entf)"></button>
+                </div>
+                <div class="btn-group hide-narrow">
+                    <button id="btnSnap" class="tool" data-icon="magnet" data-tip="Am Raster ausrichten (Strg halten: frei)"></button>
+                    <select id="gridSel" data-tip="Rasterweite">
+                        <option value="auto">Auto</option>
+                        <option value="1">1 Takt</option>
+                        <option value="0.25">1/4</option>
+                        <option value="0.125">1/8</option>
+                        <option value="0.0625">1/16</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="cb-center">
+                <div class="transport">
+                    <button id="btnRewind" class="tbtn" data-icon="rewind" data-tip="Zum Anfang (Pos1)"></button>
+                    <button id="btnPlay" class="tbtn" data-icon="play" data-tip="Wiedergabe (Leertaste)"></button>
+                    <button id="btnPause" class="tbtn" data-icon="pause" data-tip="Pause an aktueller Stelle (Enter)"></button>
+                    <button id="btnStop" class="tbtn" data-icon="stop" data-tip="Stop, zurück zum Songanfang"></button>
+                    <button id="btnRec" class="tbtn rec" data-icon="record" data-tip="Aufnahme (R)"></button>
+                </div>
+                <div id="lcd">
+                    <div class="lcd-cell lcd-pos" id="lcdPos" data-tip="Klicken: zwischen Takt und Zeit wechseln">
+                        <span class="lcd-big" id="pos">1.1.1</span><small id="posLabel">TAKT · SCHLAG</small>
+                    </div>
+                    <div class="lcd-cell"><input type="number" id="bpm" min="30" max="300" value="85" class="lcd-input" aria-label="Tempo"><small>BPM</small></div>
+                    <div class="lcd-cell"><select id="timeSig" class="lcd-select" aria-label="Taktart">
+                            <option>4/4</option><option>3/4</option><option>2/4</option><option>6/8</option><option>12/8</option><option>5/4</option><option>7/8</option>
+                        </select><small>TAKTART</small></div>
+                    <div class="lcd-cell lcd-key"><div class="lcd-row"><select id="keyRoot" class="lcd-select" aria-label="Grundton">
+                            <option>C</option><option>C#</option><option>D</option><option>D#</option><option>E</option><option>F</option><option>F#</option><option>G</option><option>G#</option><option>A</option><option>A#</option><option value="B">H</option>
+                        </select><select id="keyMode" class="lcd-select" aria-label="Tongeschlecht">
+                            <option value="major">Dur</option><option value="minor">Moll</option>
+                        </select></div><small>TONART</small></div>
+                </div>
+                <div class="transport-opts">
+                    <button id="btnCycle" class="tool" data-icon="cycle" data-tip="Cycle-Loop (C)"></button>
+                    <button id="btnPunch" class="tool" data-icon="punch" data-tip="Punch: nur im Cycle-Bereich aufnehmen, ohne zu loopen"></button>
+                    <button id="btnMetro" class="tool" data-icon="metronome" data-tip="Metronom (N)"></button>
+                    <button id="btnCount" class="tool" data-icon="countin" data-tip="Einzähler vor der Aufnahme"></button>
+                    <button id="btnKeySnap" class="tool" data-icon="keysnap" data-tip="Key-Snap: gespielte Noten in die Tonart ziehen"></button>
+                </div>
+            </div>
+
+            <div class="cb-side cb-right">
+                <div class="meter-block hide-narrow" data-tip="Eingangspegel">
+                    <small>EIN</small>
+                    <div class="hmeter" id="inMeter"><div class="hmeter-fill"></div></div>
+                </div>
+                <button id="btnTuner" class="tool" data-icon="tuner" data-tip="Stimmgerät für Gitarre und Ukulele (Strg+U)"></button>
+                <button id="btnInput" class="tool hide-narrow" data-icon="mic" data-tip="Audio-Eingang und Monitoring"></button>
+                <div class="master-block">
+                    <input type="range" id="master" min="0" max="100" value="80" class="slider" aria-label="Master-Lautstärke" data-tip="Master-Lautstärke">
+                    <div class="stereo-meter" id="masterMeter" data-tip="Ausgangspegel (rot = über -1 dB, Limiter greift)"><div class="hmeter"><div class="hmeter-fill"></div></div><div class="hmeter"><div class="hmeter-fill"></div></div></div>
+                </div>
+                <select id="masterMode" class="hide-narrow" data-tip="Master-Klang: Neutral, Warm (Klang der alten DAW) oder 90s-Brickwall">
+                    <option value="clean">Neutral</option><option value="warm">Warm</option><option value="90s">90s</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <section id="arrange" aria-label="Arrangement">
+            <div id="content">
+                <div id="rulerRow">
+                    <div class="corner" id="headCorner"></div>
+                    <div id="ruler"><canvas id="rulerCv"></canvas></div>
+                </div>
+                <div id="arrRow">
+                    <div id="arrCorner"></div>
+                    <div id="arrLane"></div>
+                </div>
+                <div id="laneArea">
+                    <canvas id="gridCv"></canvas>
+                    <div id="trackRows"></div>
+                    <div id="emptyHint"></div>
+                </div>
+                <div id="playhead"></div>
+            </div>
+            <div id="marquee"></div>
+        </section>
+        <aside id="library" aria-label="Bibliothek">
+            <div id="libHead"></div>
+            <div id="libList"></div>
+        </aside>
+    </main>
+
+    <section id="bottom" aria-label="Unterer Bereich">
+        <div id="bottomResize"></div>
+        <div id="bottomBody"></div>
+    </section>
+
+    <div id="overlayRoot"></div>
+    <input type="file" id="fileProj" accept=".webdaw,.json,application/json" hidden>
+    <input type="file" id="fileAudio" accept="audio/*" multiple hidden>
+
+    <script src="js/core/namespace.js"></script>
+    <script src="js/core/model.js"></script>
+    <script src="js/core/history.js"></script>
+    <script src="js/project/audio-store.js"></script>
+    <script src="js/audio/worklets.js"></script>
+    <script src="js/audio/channel.js"></script>
+    <script src="js/audio/engine.js"></script>
+    <script src="js/audio/instruments.js"></script>
+    <script src="js/audio/transport.js"></script>
+    <script src="js/audio/render.js"></script>
+    <script src="js/audio/input.js"></script>
+    <script src="js/audio/recorder.js"></script>
+    <script src="js/audio/latency-test.js"></script>
+    <script src="js/audio/pitch-detect.js"></script>
+    <script src="js/project/db.js"></script>
+    <script src="js/project/file-format.js"></script>
+    <script src="js/project/storage.js"></script>
+    <script src="js/project/export.js"></script>
+    <script src="js/ui/icons.js"></script>
+    <script src="js/ui/overlays.js"></script>
+    <script src="js/ui/controls.js"></script>
+    <script src="js/timeline/view.js"></script>
+    <script src="js/timeline/lanes.js"></script>
+    <script src="js/timeline/region-ops.js"></script>
+    <script src="js/timeline/region-input.js"></script>
+    <script src="js/timeline/automation.js"></script>
+    <script src="js/timeline/tracks-view.js"></script>
+    <script src="js/timeline/sections.js"></script>
+    <script src="js/editor/roll.js"></script>
+    <script src="js/editor/roll-input.js"></script>
+    <script src="js/editor/audio-editor.js"></script>
+    <script src="js/editor/editor.js"></script>
+    <script src="js/mixer/mixer.js"></script>
+    <script src="js/library/loops.js"></script>
+    <script src="js/library/patches.js"></script>
+    <script src="js/library/demos.js"></script>
+    <script src="js/library/templates.js"></script>
+    <script src="js/library/library-panel.js"></script>
+    <script src="js/ui/smart-controls.js"></script>
+    <script src="js/ui/musical-keyboard.js"></script>
+    <script src="js/ui/project-dialogs.js"></script>
+    <script src="js/ui/tuner.js"></script>
+    <script src="js/ui/topbar.js"></script>
+    <script src="js/ui/menus.js"></script>
+    <script src="js/ui/shortcuts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

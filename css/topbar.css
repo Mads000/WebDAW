@@ -1,0 +1,90 @@
+#topbar { background: var(--topbar); border-bottom: 1px solid var(--border); position: relative; z-index: 30; flex: none; }
+
+#menubar { display: flex; align-items: center; height: 28px; padding: 0 10px; gap: 2px; border-bottom: 1px solid var(--border-soft); }
+#brand { font-weight: 700; letter-spacing: .2px; margin-right: 10px; }
+#menus { display: flex; gap: 1px; }
+.menu-btn { background: none; border: none; padding: 2px 9px; border-radius: 4px; }
+.menu-btn:hover, .menu-btn.open { background: var(--surface-3); }
+#projectInfo { margin-left: auto; display: flex; gap: 10px; align-items: baseline; color: var(--text-2); font-size: 12px; min-width: 0; overflow: hidden; white-space: nowrap; }
+#projectName { color: var(--text); cursor: text; overflow: hidden; text-overflow: ellipsis; }
+#saveState { color: var(--text-3); font-size: 11px; }
+#saveState.err { color: var(--rec); font-weight: 600; }
+
+#controlbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 6px 10px; min-height: 54px; }
+.cb-side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cb-right { justify-content: flex-end; }
+.cb-center { display: flex; align-items: center; gap: 10px; }
+
+.btn-group { display: inline-flex; flex: none; align-items: center; }
+.btn-group > button { border-radius: 0; margin-left: -1px; }
+.btn-group > button:first-child { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.btn-group > button:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.btn-group > select { margin-left: 4px; }
+
+.tool { width: 32px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); flex: none; }
+.tool:hover { color: var(--text); }
+.tool.on { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+
+.transport { display: inline-flex; flex: none; }
+.tbtn { width: 38px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 0; margin-left: -1px; color: var(--text); }
+.transport .tbtn:first-child { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.transport .tbtn:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.tbtn.on { color: var(--play); }
+.tbtn.rec { color: var(--rec); }
+.tbtn.rec.on { background: var(--rec); color: #fff; animation: recblink 1s steps(2) infinite; }
+.tbtn.rec.armed { background: var(--rec); color: #fff; opacity: .7; }
+@keyframes recblink { 50% { opacity: .55; } }
+
+.transport-opts { display: inline-flex; gap: 3px; flex: none; }
+#btnCycle.on { background: var(--cycle); color: #2a2206; }
+#btnPunch.on { background: var(--rec); color: #fff; }
+#btnKeySnap.on { background: var(--play); color: #06230f; }
+
+#lcd {
+    display: flex; align-items: stretch; flex: none; height: 42px; border-radius: 8px;
+    background: var(--lcd-bg); border: 1px solid var(--lcd-border);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, .45); color: var(--lcd-text);
+    font-family: var(--font-num);
+}
+.lcd-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 9px; border-left: 1px solid rgba(127, 127, 127, .22); min-width: 0; }
+.lcd-cell:first-child { border-left: none; }
+.lcd-cell small { font: 600 8.5px/1.2 var(--font); letter-spacing: .6px; color: var(--lcd-dim); white-space: nowrap; }
+.lcd-pos { min-width: 112px; cursor: default; }
+.lcd-big { font-size: 20px; line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+.lcd-row { display: flex; }
+.lcd-input, .lcd-select {
+    background: none !important; border: none !important; color: var(--lcd-text);
+    font: 15px/1.2 var(--font-num); text-align: center; padding: 0; min-height: 0; height: 20px;
+    -webkit-appearance: none; appearance: none; -moz-appearance: textfield;
+}
+.lcd-input { width: 44px !important; user-select: text; }
+.lcd-input::-webkit-outer-spin-button, .lcd-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.lcd-select { width: auto; cursor: default; padding: 0 1px; }
+.lcd-select option { color: var(--text); background: var(--surface); }
+.lcd-key .lcd-select { font-size: 13px; }
+
+.meter-block { display: flex; align-items: center; gap: 5px; color: var(--text-3); }
+.meter-block small { font-size: 9px; letter-spacing: .5px; }
+.meter-block .hmeter { width: 64px; }
+.master-block { display: flex; flex-direction: column; gap: 2px; width: 118px; flex: 0 1 118px; min-width: 70px; }
+.stereo-meter { display: flex; flex-direction: column; gap: 1px; }
+.stereo-meter .hmeter { height: 3px; }
+#masterMode { flex: none; }
+
+/* Bei wenig Breite Zweitrangiges ausblenden, statt umzubrechen */
+@media (max-width: 1560px) { .hide-mid { display: none !important; } }
+@media (max-width: 1320px) {
+    .hide-narrow { display: none !important; }
+    #controlbar { grid-template-columns: auto auto minmax(0, 1fr); gap: 8px; }
+}
+@media (max-width: 1000px) {
+    #controlbar { grid-template-columns: 1fr; justify-items: center; gap: 5px; padding: 4px 6px; }
+    .cb-left { order: 2; } .cb-right { order: 3; width: 100%; justify-content: center; }
+    .lcd-key, #brand { display: none; }
+}
+@media (max-width: 620px) {
+    .transport-opts { display: none; }
+    .lcd-cell { padding: 0 5px; }
+    .lcd-pos { min-width: 84px; } .lcd-big { font-size: 16px; }
+    #projectInfo { display: none; }
+}
