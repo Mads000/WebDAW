@@ -12,14 +12,15 @@ const CHROME_PATHS = [
 
 export { sleep };
 
-export async function launch({ width = 1440, height = 900, fakeAudioFile = null, downloadDir = null } = {}) {
+// realistic: ohne Autoplay-Freigabe, wie bei einem normalen Browserstart
+export async function launch({ width = 1440, height = 900, fakeAudioFile = null, downloadDir = null, realistic = false } = {}) {
     const exe = CHROME_PATHS.find(existsSync);
     if (!exe) throw new Error('Kein Chrome/Edge gefunden');
     const dataDir = mkdtempSync(join(tmpdir(), 'webdaw-test-'));
     const args = [
         '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${dataDir}`,
         `--window-size=${width},${height}`, '--no-first-run', '--no-default-browser-check',
-        '--autoplay-policy=no-user-gesture-required',
+        ...(realistic ? [] : ['--autoplay-policy=no-user-gesture-required']),
         '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream',
         'about:blank',
     ];
@@ -30,7 +31,7 @@ export async function launch({ width = 1440, height = 900, fakeAudioFile = null,
     for (let i = 0; i < 100 && !port; i++) {
         await sleep(100);
         const f = join(dataDir, 'DevToolsActivePort');
-        if (existsSync(f)) port = readFileSync(f, 'utf8').split('\n')[0].trim();
+        try { if (existsSync(f)) port = readFileSync(f, 'utf8').split('\n')[0].trim(); } catch { /* Chrome schreibt noch */ }
     }
     if (!port) { proc.kill(); throw new Error('Chrome hat keinen Debug-Port geöffnet'); }
 

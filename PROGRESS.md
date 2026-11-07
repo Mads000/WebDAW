@@ -5,8 +5,8 @@ Wird nach jeder Phase aktualisiert.
 ## Aktueller Projektzustand
 
 - **Phase:** alle 9 Phasen abgeschlossen
-- **Starten:** `index.html` doppelklicken (Chrome oder Edge)
-- **Tests:** `tests/e2e.mjs` 133/133, `tests/e2e-mouse.mjs` 44/44
+- **Starten:** `start-webdaw.bat` oder `index.html` doppelklicken (Chrome oder Edge); online unter https://mads000.github.io/WebDAW/, dort als App installierbar und offline nutzbar
+- **Tests:** `tests/e2e.mjs` 133/133, `tests/e2e-mouse.mjs` 44/44, `tests/offline.mjs` 7/7
 - **Noch nicht geprüft:** echte Instrumente, echtes Interface und Hören (siehe „Als Nächstes“)
 - **Sicherung:** `_backup_original/` (alle drei Original-HTML-Dateien, schreibgeschützt)
 - **Bericht:** [docs/BERICHT.md](docs/BERICHT.md) · Analyse: [docs/ANALYSE.md](docs/ANALYSE.md) · Musik: [docs/MUSIK.md](docs/MUSIK.md)
@@ -40,9 +40,14 @@ Tests unter echten Doppelklick-Bedingungen. Gefundene und behobene Fehler der ne
 ### Phase 9 – Bericht ✅
 [docs/BERICHT.md](docs/BERICHT.md)
 
+### Danach – Veröffentlichung ✅
+Startdatei `start-webdaw.bat`, GitHub-Repository Mads000/WebDAW, GitHub Pages, installierbare App mit Offline-Start (Service Worker `sw.js`, `manifest.webmanifest`, `icons/`).
+
 ## Offene Fehler
 
-Aktuell keine bekannten, in den Tests sichtbaren Fehler. Bekannte Einschränkungen und fehlende Funktionen stehen im Bericht, Abschnitte 6 und 7.
+- **„Seite hat sich aufgehangen“ (online, gemeldet am 07.11.2026):** In Tests nicht nachstellbar (Hauptthread höchstens 0,13 s belegt, Demos, Wiedergabe und Neuladen ohne Fehler). Details zu Gerät, Browser und letzter Aktion fehlen noch.
+
+Sonst keine bekannten, in den Tests sichtbaren Fehler. Bekannte Einschränkungen und fehlende Funktionen stehen im Bericht, Abschnitte 6 und 7.
 
 ## Als Nächstes (braucht dich)
 

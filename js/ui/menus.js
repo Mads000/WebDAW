@@ -21,6 +21,8 @@
             { sep: 1 },
             { label: 'Als WAV exportieren …', shortcut: 'Strg+E', action: () => WD.exporter.dialog() },
             { label: 'Audiodatei importieren …', shortcut: 'Strg+I', action: () => $('fileAudio').click() },
+            { sep: 1 },
+            WD.install.menuItem(),
         ],
         Bearbeiten: () => {
             const H = WD.history, sel = WD.model.selRegions().length > 0;
