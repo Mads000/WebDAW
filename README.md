@@ -4,6 +4,7 @@ Eine Musik-DAW im Browser, ohne Installation und ohne Server: Audio- und Instrum
 
 ## Starten
 
+- **Online:** https://mads000.github.io/WebDAW/ (Chrome oder Edge)
 - **Windows:** `start-webdaw.bat` doppelklicken. Die Datei öffnet die DAW in Chrome oder Edge als eigenes Fenster.
 - **Sonst:** `index.html` in Chrome oder Edge öffnen.
 
