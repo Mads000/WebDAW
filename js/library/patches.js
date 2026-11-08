@@ -22,9 +22,11 @@
             'Bedroom-Vocal': { eqL: -3, eqM: 2, eqH: -2, fxCmp: .5, fxRev: .08, fx: fx({ gate: .2, hp: .45, lp: .3 }) },
             'Hyper-Vocal': { eqL: -4, eqM: 2, eqH: 4, fxCmp: .6, fxRev: .1, fxDly: .16, fx: fx({ gate: .25, hp: .55, drive: .25, crush: .22 }) },
         },
-        'Bass & Beat': {
+        'Bass': {
             'Bass DI': { eqL: 2, eqM: 1, eqH: -2, fxCmp: .5, fx: fx({ gate: .1 }) },
             'Bass Moog-artig': { eqL: 3, eqM: -1, eqH: -3, fxCmp: .45, fx: fx({ drive: .3, lp: .45 }) },
+        },
+        'Drums': {
             'Live-Drums': { eqL: 1, eqM: -1, eqH: 2, fxCmp: .35, fxRev: .14 , fx: fx({}) },
             'Lo-Fi Beat': { eqL: 1, eqM: 1, eqH: -3, fxCmp: .5, fx: fx({ crush: .28, lp: .4, drive: .15 }) },
             'Hyperpop Drums': { eqL: 3, eqM: 0, eqH: 3, fxCmp: .65, fx: fx({ drive: .5, driveType: 'distortion', limit: .25 }) },
@@ -36,13 +38,26 @@
         return null;
     }
 
+    const LABELS = {
+        'Indie Clean': 'Indie-Clean', 'Lead-Vocal': 'Lead-Gesang', 'Doppel-Vocal': 'Doppel-Gesang', 'Harmonie-Vocal': 'Harmonie-Gesang',
+        'Bedroom-Vocal': 'Bedroom-Gesang', 'Hyper-Vocal': 'Hyper-Gesang', 'Bass DI': 'Bass direkt', 'Lo-Fi Beat': 'Lo-Fi-Beat', 'Hyperpop Drums': 'Hyperpop-Drums',
+    };
+    // Welche Preset-Gruppen zu einer Spur passen
+    function groupsFor(t) {
+        if (t.type === 'drum') return ['Drums'];
+        if (t.type === 'audio') return ['Gitarre & Ukulele', 'Gesang', 'Bass'];
+        const fam = WD.instruments.family(t.inst);
+        return fam === 'guitar' ? ['Gitarre & Ukulele'] : fam === 'bass' ? ['Bass'] : [];
+    }
+
     const P = WD.patches = {
-        PATCHES,
+        PATCHES, groupsFor,
+        label: name => LABELS[name] || name,
         apply(track, name) {
             const def = find(name);
             if (!def) return;
             WD.history.run('Patch: ' + name, () => {
-                Object.assign(track, { eqL: 0, eqM: 0, eqH: 0, fxCmp: 0, fxRev: 0, fxDly: 0, dbl: false }, JSON.parse(JSON.stringify(def)));
+                Object.assign(track, { eqL: 0, eqM: 0, eqH: 0, fxCmp: 0, fxRev: 0, fxDly: 0, fxRevSize: .5, fxDlyDiv: '1/8.', dbl: false }, JSON.parse(JSON.stringify(def)));
                 track.patch = name;
             });
             bus.emit('mix'); bus.emit('patch');

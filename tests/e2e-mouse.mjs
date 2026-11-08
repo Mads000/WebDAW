@@ -156,7 +156,7 @@ const er = await regionRect('E');
 await page.dblclick('.trow:nth-child(1) .region', { x: 30, y: 30 }); await sleep(250);
 check('Doppelklick auf Region öffnet Editor', await E(`WD.view.bottom==='editor'`));
 void er;
-const geo = await E(`(()=>{const c=document.querySelector('.roll-canvas').getBoundingClientRect();const s=document.querySelector('.roll-scroll');const y=n=>20+(108-n)*16-s.scrollTop;return {x:c.x,y:c.y,w:c.width,h:c.height,y60:y(60),y64:y(64),key:58,ppb:300}})()`);
+const geo = await E(`(()=>{const c=document.querySelector('.roll-canvas').getBoundingClientRect();const s=document.querySelector('.roll-scroll');const y=n=>20+(108-n)*18-s.scrollTop;return {x:c.x,y:c.y,w:c.width,h:c.height,y60:y(60),y64:y(64),key:58,ppb:300}})()`);
 const xAt = t => geo.x + geo.key + t * geo.ppb;
 const yFor = n => geo.y + (n === 60 ? geo.y60 : geo.y64) + 8;
 await page.drag(xAt(.3), yFor(60), xAt(.8), yFor(60)); await sleep(100);
@@ -189,9 +189,9 @@ await page.mouseClick(geo.x + 20, geo.y + 100); await sleep(80);
 // Unterer Bereich
 const handle = await page.rect('#bottomResize');
 const h0 = await E(`document.getElementById('bottom').getBoundingClientRect().height`);
-await page.drag(handle.x + 300, handle.y + 3, handle.x + 300, handle.y - 60); await sleep(80);
+await page.drag(handle.x + 300, handle.y + 3, handle.x + 300, handle.y + 60); await sleep(80);
 const h1 = await E(`document.getElementById('bottom').getBoundingClientRect().height`);
-check('Unterer Bereich in der Höhe ziehbar', h1 > h0 + 30, `${h0} → ${h1}`);
+check('Unterer Bereich in der Höhe ziehbar', h1 < h0 - 30, `${h0} → ${h1}`);
 
 // Bibliothek folgt der Spur
 await E(`WD.view.libraryOpen=true;WD.libraryPanel.render();WD.tracksView.addTrack('drum')`); await sleep(80);
@@ -199,7 +199,7 @@ check('Neue Drum-Spur: Bibliothek zeigt Kits', /drum-kits/i.test(await E(`docume
 await E(`WD.tracksView.addTrack('audio')`); await sleep(80);
 check('Neue Audio-Spur: Bibliothek zeigt keine Kits', !/drum-kits/i.test(await E(`document.getElementById('libList').textContent`)) && /Akustikgitarre/.test(await E(`document.getElementById('libList').textContent`)));
 await E(`WD.tracksView.addTrack('inst')`); await sleep(80);
-check('Neue Instrument-Spur: Bibliothek zeigt Instrumente', /Clean Guitar/.test(await E(`document.getElementById('libList').textContent`)));
+check('Neue Instrument-Spur: Bibliothek zeigt Instrumente', /Clean-Gitarre/.test(await E(`document.getElementById('libList').textContent`)));
 
 // Knopf-Reihe Kopfleiste
 await page.click('#btnPlay'); await sleep(250);

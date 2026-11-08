@@ -8,7 +8,7 @@
     const LO = 21, HI = 108;
     const BLACK = new Set([1, 3, 6, 8, 10]);
     const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'];
-    const prefs = { pxPerBar: 300, rowH: 16, grid: 1 / 16 };
+    const prefs = { pxPerBar: 300, rowH: 18, grid: 1 / 16 };
     const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
     WD.roll = {
@@ -178,9 +178,9 @@
                         g.fillStyle = black ? '#2b2c30' : '#e9e9ea';
                         g.fillRect(0, y, KEYW, R.rowH);
                         g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, y + R.rowH - 1, KEYW, 1);
-                        if (n % 12 === 0 || R.rowH >= 18) {
-                            g.fillStyle = black ? '#c9cad0' : '#44464c'; g.font = (n % 12 === 0 ? 'bold ' : '') + '9.5px ' + css('--font');
-                            g.fillText(NAMES[n % 12] + (Math.floor(n / 12) - 1), 5, y + R.rowH - 4);
+                        if (n % 12 === 0 || R.rowH >= 11) {
+                            g.fillStyle = black ? '#c9cad0' : '#44464c'; g.font = (n % 12 === 0 ? 'bold ' : '') + Math.min(10.5, R.rowH - 1) + 'px ' + css('--font');
+                            g.fillText(NAMES[n % 12] + (Math.floor(n / 12) - 1), 5, y + R.rowH / 2 + Math.min(10.5, R.rowH - 1) * .35);
                         }
                     }
                 }

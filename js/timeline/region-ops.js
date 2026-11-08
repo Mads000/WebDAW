@@ -10,7 +10,7 @@
     // Teilt eine Region an einer Position, Rückgabe ist der rechte Teil. Geloopte MIDI-Regionen werden dabei ausgeschrieben.
     // Eine geloopte Audio-Region in einzelne Regionen je Durchgang zerlegen; r wird zum ersten Durchgang
     function expandAudioLoop(tr, r) {
-        const pieces = M.audioPieces(r);
+        const pieces = M.loopPieces(r);
         if (pieces.length < 2) return [r];
         const out = [r];
         pieces.slice(1).forEach(pc => {
@@ -137,15 +137,32 @@
             const sel = M.selTrack();
             const newIds = [];
             const singleTrack = new Set(clipboard.map(c => c.trackId)).size === 1;
-            WD.history.run('Einfügen', () => clipboard.forEach(c => {
+            const placed = clipboard.map(c => {
                 let tr = singleTrack && sel && sel.type === c.type ? sel : M.track(c.trackId);
                 if (!tr || tr.type !== c.type) tr = WD.project.tracks.find(x => x.type === c.type);
-                if (!tr) return;
-                const r = Object.assign(clone(c.region), { id: uid(), startBar: at + c.rel });
+                return { c, tr };
+            }).filter(x => x.tr);
+            if (!placed.length) { WD.ui.toast('Keine passende Spur zum Einfügen vorhanden.'); return; }
+            // Liegt am Ziel schon etwas, rückt die ganze Einfügung dahinter; es liegt nie etwas unsichtbar übereinander
+            let pos = at;
+            for (let guard = 0; guard < 2000; guard++) {
+                let next = null;
+                placed.forEach(({ c, tr }) => {
+                    const a = pos + c.rel, b = a + c.region.lengthBars;
+                    tr.regions.forEach(x => {
+                        const end = x.startBar + x.lengthBars;
+                        if (x.startBar < b - 1e-6 && end > a + 1e-6) next = Math.max(next === null ? -Infinity : next, end - c.rel);
+                    });
+                });
+                if (next === null) break;
+                pos = next;
+            }
+            WD.history.run('Einfügen', () => placed.forEach(({ c, tr }) => {
+                const r = Object.assign(clone(c.region), { id: uid(), startBar: pos + c.rel });
                 tr.regions.push(r);
                 newIds.push(r.id);
             }));
-            if (!newIds.length) { WD.ui.toast('Keine passende Spur zum Einfügen vorhanden.'); return; }
+            if (pos > at + 1e-6) WD.ui.toast('Am Playhead lag schon eine Region, deshalb direkt dahinter eingefügt.');
             WD.view.selRegionIds = new Set(newIds);
             notify(true);
         },
@@ -222,6 +239,7 @@
             WD.ui.menu(x, y, [
                 { label: 'Öffnen im Editor', icon: 'roll', action: () => WD.editor.open(region.id) },
                 { label: 'Umbenennen …', action: () => Ops.rename(region) },
+                region.takes && region.takes.length > 1 && { label: WD.view.takesOpen.has(region.id) ? 'Takes einklappen' : 'Takes aufklappen (Comping)', action: () => WD.comping.toggle(region.id) },
                 { sep: 1 },
                 { label: 'Teilen am Playhead', icon: 'scissors', shortcut: 'Strg+T', action: Ops.splitAtPlayhead },
                 { label: n > 1 ? `${n} Regionen duplizieren` : 'Duplizieren', icon: 'copy', shortcut: 'Strg+D', action: Ops.duplicate },

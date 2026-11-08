@@ -55,8 +55,8 @@ const waitModal = async (ms = 8000) => {
 const section = n => console.log(`\n=== ${n} ===`);
 const freshReload = async () => {
     await page.goto(url, { settle: 700 });
-    // Eventuelle Wiederherstellungs-Abfrage schließen
-    await modalClick('Später');
+    // Mit leerem Projekt beginnen: die DAW öffnet sonst das zuletzt benutzte
+    await E(`(async()=>{for(const a of await WD.db.all('autosave'))await WD.db.delete('autosave',a.id);await WD.db.delete('meta','lastProject');WD.storage.activate(WD.newProject())})()`);
     await page.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 700, y: 12, button: 'left', buttons: 1, clickCount: 1 });
     await page.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 700, y: 12, button: 'left', buttons: 0, clickCount: 1 });
     await E(`WD.engine.ensure()`);
@@ -216,7 +216,7 @@ const fxResult = await E(`(async()=>{
     const out=oc.createGain(), rev=oc.createGain(), dly=oc.createGain(); out.connect(oc.destination);
     const silent=oc.createGain(); silent.gain.value=0; rev.connect(silent); dly.connect(silent); silent.connect(oc.destination);
     const t=WD.model.normalizeTrack(Object.assign({type:'audio',name:'x',vol:1},cfg));
-    const st=WD.channel.createStrip(oc,t,{output:out,reverb:destName==='reverb'?oc.destination:rev,delay:destName==='delay'?oc.destination:dly});
+    const st=WD.channel.createStrip(oc,t,{output:out,reverb:()=>destName==='reverb'?oc.destination:rev,delay:()=>destName==='delay'?oc.destination:dly});
     if(destName!=='output') out.disconnect();
     st.fader.gain.value=1; st.setMuted(false,true);
     srcFn(oc,st.input);
@@ -263,8 +263,7 @@ const fxResult = await E(`(async()=>{
   let dd=0;for(let i=4800;i<db[0].length;i++)dd+=Math.abs(db[0][i]-db[1][i]);R.dblDiff=dd/(db[0].length-4800);
   async function tail(cfg){
     const oc=new OfflineAudioContext(2,sr*1.5,sr);await WD.worklets.load(oc);
-    const m=WD.engine.buildMaster(oc,{vol:1,mode:'clean'},oc.destination);
-    m.delay.delayTime.value=.4;
+    const m=WD.engine.buildMaster(oc,{vol:1,mode:'clean'},oc.destination,90);
     const t=WD.model.normalizeTrack(Object.assign({type:'audio',name:'x',vol:1},cfg));
     const st=WD.channel.createStrip(oc,t,{output:m.input,reverb:m.reverb,delay:m.delay});
     st.fader.gain.value=1;st.setMuted(false,true);
@@ -461,7 +460,6 @@ const projectId = await E(`WD.project.id`);
 
 await page.goto(url, { settle: 700 });
 await E(`WD.engine.ensure()`);
-await modalClick('Später');
 await E(`WD.storage.openProject(${JSON.stringify(projectId)})`);
 await sleep(400);
 const reloaded = await E(`(()=>{const p=WD.project;const au=p.tracks.flatMap(t=>t.regions).find(r=>r.name==='nur-links');const b=au&&WD.audioStore.get(au.bufId);const rms=d=>{let s=0;for(const v of d)s+=v*v;return Math.sqrt(s/d.length)};return {n:p.tracks.length,key:p.keyRoot,mute:p.tracks[0].mute,cycle:p.cycle,mode:p.master.mode,ch:b&&b.numberOfChannels,l:b&&rms(b.getChannelData(0)),r:b&&rms(b.getChannelData(1))}})()`);
@@ -504,30 +502,27 @@ const st3 = await E(`document.getElementById('saveState').textContent`);
 check('K3: Autosave mit 3 Minuten Audio läuft', /gesichert/.test(st3), st3);
 const autosaveId = await E(`WD.project.id`);
 await page.goto(url, { settle: 900 });
-const dlgTitle = await waitModal();
+await sleep(1800);
 console.log('INFO  DB nach Neuladen:', JSON.stringify(await E(`WD.db.all('autosave').then(l=>l.map(a=>a.name))`)));
-check('K3: Nach Neuladen wird Wiederherstellung angeboten', /wiederherstellen/.test(dlgTitle), dlgTitle);
+const dlgTitle = await E(`document.querySelector('.modal h2')?.textContent||''`);
+check('K3: Letzte Sitzung öffnet ohne Rückfrage', dlgTitle === '' && await E(`WD.project.name`) === 'Autosave-Test', dlgTitle);
 await shot('09-wiederherstellung');
-await modalClick('Wiederherstellen'); await sleep(1500);
 const rec3 = await E(`(()=>{const r=WD.project.tracks[0]&&WD.project.tracks[0].regions[0];const b=r&&WD.audioStore.get(r.bufId);return {name:WD.project.name,dur:b&&b.duration,ch:b&&b.numberOfChannels,s:b&&b.getChannelData(0)[100]}})()`);
 check('K3: 3 Minuten Stereo-Audio vollständig wiederhergestellt', rec3.name === 'Autosave-Test' && near(rec3.dur, 180, .1) && rec3.ch === 2 && near(rec3.s, .3, .001), JSON.stringify(rec3));
-// Abgelehnte Wiederherstellung bleibt als Sicherung
-await E(`WD.history.run('x',()=>{WD.project.name='Autosave-Test 2'});WD.bus.emit('dirty')`);
-await sleep(3200);
+// Ein zweiter, älterer ungespeicherter Stand eines anderen Projekts bleibt als Sicherung
+await E(`WD.db.put('autosave',{id:'anderes',name:'Autosave-Test 2',savedAt:Date.now()-60000,json:JSON.stringify(WD.newProject('Autosave-Test 2'))})`);
 await page.goto(url, { settle: 900 });
-await waitModal();
-await modalClick('Später'); await sleep(600);
+await sleep(1800);
 const bk = await E(`WD.storage.listBackups().then(l=>l.map(b=>b.name+'|'+b.reason))`);
-check('K7: Abgelehntes Autosave bleibt als Sicherung', bk.some(x => x.startsWith('Autosave-Test 2')), bk.slice(0, 3).join(', '));
+check('K7: Anderes ungespeichertes Projekt bleibt als Sicherung', bk.some(x => x.startsWith('Autosave-Test 2')), bk.slice(0, 3).join(', '));
 void autosaveId;
 
 // Abgestürzte Aufnahme
 await E(`WD.engine.ensure()`);
-await E(`(async()=>{await WD.storage.newProject();const t=WD.tracksView.addTrack('audio');WD.view.selTrackId=t.id;await WD.recorder.start()})()`);
+await E(`(async()=>{WD.storage.activate(WD.newProject());const t=WD.tracksView.addTrack('audio');WD.view.selTrackId=t.id;await WD.recorder.start()})()`);
 await sleep(1800);
 await page.send('Page.reload', { ignoreCache: false }); await sleep(1500);
-await waitModal(4000);
-await modalClick('Später'); await sleep(800);
+await sleep(1500);
 const saved = await E(`WD.storage.listProjects().then(l=>l.map(p=>p.name))`);
 check('Aufnahme übersteht Absturz/Neuladen', saved.some(n => n.startsWith('Gerettete Aufnahme')), saved.join(', '));
 await shot('10-gerettet');
@@ -536,8 +531,7 @@ await shot('10-gerettet');
 await freshReload();
 const noData = await E(`localStorage.getItem('webdaw_autosave')`);
 await E(`(async()=>{localStorage.setItem('webdaw_autosave',JSON.stringify({bpm:90,markers:[],tracks:[{type:'drum',name:'AltDrum',vol:.8,kit:'808',regions:[]}]}));await WD.db.delete('meta','legacyImported')})()`);
-await page.goto(url, { settle: 900 });
-await modalClick('Später'); await sleep(200);
+await page.goto(url, { settle: 1100 });
 const lst = await E(`WD.storage.listProjects().then(l=>l.map(p=>p.name))`);
 check('Altes Autosave aus localStorage wird übernommen', lst.includes('Autosave der alten Version'), lst.join(', '));
 check('Altes Autosave bleibt unangetastet liegen', !!(await E(`localStorage.getItem('webdaw_autosave')`)));
@@ -589,14 +583,24 @@ if (wav) {
 }
 
 // Stems
-clearDl(f => f.endsWith('.wav'));
+clearDl(f => f.endsWith('.wav') || f.endsWith('.zip'));
 await E(`void WD.exporter.stems(24)`);
 await sleep(500);
 for (const end = Date.now() + 90000; Date.now() < end && await E(`WD.exporter.busy`); await sleep(300));
-const stems = readdirSync(dl).filter(f => f.endsWith('.wav'));
-check('Stems: je Spur eine Datei', stems.length === await E(`WD.project.tracks.filter(t=>t.regions.length).length`), stems.length);
-if (stems.length) {
-    const a = analyzeWav(join(dl, stems[0]));
+await waitFile(f => f.endsWith('.zip'), 5000);
+const zips = readdirSync(dl).filter(f => f.endsWith('.zip'));
+check('Stems: genau eine ZIP-Datei', zips.length === 1, zips.join(', '));
+if (zips.length) {
+    const z = readFileSync(join(dl, zips[0]));
+    let count = 0, firstSize = 0, firstStart = 0;
+    for (let o = 0; o + 30 < z.length && z.readUInt32LE(o) === 0x04034b50;) {
+        const size = z.readUInt32LE(o + 18), nl = z.readUInt16LE(o + 26);
+        if (!count) { firstSize = size; firstStart = o + 30 + nl; }
+        count++; o += 30 + nl + size;
+    }
+    check('Stems: je Spur eine Datei im ZIP', count === await E(`WD.project.tracks.filter(t=>t.regions.length).length`), count);
+    const wav = join(dl, 'stem0.wav'); writeFileSync(wav, z.subarray(firstStart, firstStart + firstSize));
+    const a = analyzeWav(wav);
     check('Stems: 24 Bit, nicht stumm', a.bits === 24, a.bits);
 }
 
@@ -635,7 +639,7 @@ check('Klick in Bibliothek wechselt den Sound', await E(`WD.model.selTrack().ins
 await E(`WD.bottom.hide()`);
 await E(`[...document.querySelectorAll('.menu-btn')].find(b=>b.dataset.menu==='Hilfe').click()`); await sleep(100);
 await E(`document.querySelector('.ctx-item').click()`); await sleep(150);
-check('Menü öffnet Dialog', /Tastaturkürzel/.test(await E(`document.querySelector('.modal h2')?.textContent||''`)));
+check('Menü öffnet Dialog', /Erste Schritte/.test(await E(`document.querySelector('.modal h2')?.textContent||''`)));
 await shot('22-tastaturkuerzel');
 await modalClick('Schließen');
 

@@ -9,18 +9,41 @@
         return end || 1;
     }
 
-    // Rendert die übergebenen Spuren zu einem AudioBuffer. useMaster=false liefert neutrale Stems.
-    async function render(tracks, { useMaster = true, tail = 2.5 } = {}) {
+    // Kopie der Spur ohne alle Effekte; Lautstärke und Panorama bleiben
+    function dryCopy(tr) {
+        const c = JSON.parse(JSON.stringify(tr));
+        Object.assign(c, { eqL: 0, eqM: 0, eqH: 0, fxRev: 0, fxDly: 0, fxCmp: 0, dbl: false });
+        c.fx = { gate: 0, drive: 0, driveType: 'overdrive', chorus: 0, crush: 0, hp: 0, lp: 0, limit: 0 };
+        c.autos = c.autos && c.autos.pan ? { pan: c.autos.pan } : {};
+        return c;
+    }
+
+    // Automation als dichte Stützstellen, damit auch nichtlineare Parameter (Filter) dem Verlauf folgen
+    function scheduleAuto(strip, tr, key, a, b, spb, base) {
+        const pts = M.autoList(tr, key);
+        if (!pts.length) return false;
+        const ap = strip.autoParam(key);
+        if (!ap) return false;
+        const at = bar => base * ap.map(WD.transport.autoValAt(tr, bar, key));
+        ap.param.setValueAtTime(at(a), 0);
+        const step = 1 / 32;
+        for (let bar = a + step; bar <= b + 1e-6; bar += step) ap.param.linearRampToValueAtTime(at(bar), (bar - a) * spb);
+        return true;
+    }
+
+    // Rendert die übergebenen Spuren zu einem AudioBuffer.
+    // useMaster=false: neutral, ohne Master-Klang und Limiter. dry: ohne Effekte. range: {a, b} in Bar-Einheiten.
+    async function render(tracks, { useMaster = true, tail = 2.5, dry = false, range = null } = {}) {
         await WD.engine.ensure();
         const p = WD.project, spb = M.secPerBar();
         const sr = WD.engine.ctx.sampleRate;
-        const total = exportEnd(p) * spb + tail;
+        const a = range ? range.a : 0, b = range ? range.b : exportEnd(p);
+        const total = (b - a) * spb + tail;
         const oc = new OfflineAudioContext(2, Math.ceil(total * sr), sr);
         await WD.worklets.load(oc);
 
         const masterCfg = useMaster ? p.master : { vol: 1, mode: 'clean' };
-        const master = WD.engine.buildMaster(oc, masterCfg, oc.destination);
-        master.delay.delayTime.value = WD.engine.delaySeconds(p.bpm);
+        const master = WD.engine.buildMaster(oc, masterCfg, oc.destination, p.bpm);
         if (!useMaster) { // Stems: ohne Limiter, sonst würden sie anders als im Mix klingen
             master.input.disconnect(); master.limiter.disconnect();
             master.input.connect(oc.destination);
@@ -28,21 +51,22 @@
 
         // Ereignisse sammeln und erst kurz vor ihrer Zeit anlegen: Knoten, die noch warten, kosten sonst in jedem Rechenschritt.
         const events = [];
-        for (const tr of tracks) {
-            if (!tr.regions.length) continue;
+        for (const source of tracks) {
+            if (!source.regions.length) continue;
+            const tr = dry ? dryCopy(source) : source;
             const strip = WD.channel.createStrip(oc, tr, { output: master.input, reverb: master.reverb, delay: master.delay });
             strip.setMuted(false, true);
-            if (tr.auto && tr.auto.length) {
-                const s = tr.auto.slice().sort((a, b) => a.bar - b.bar);
-                strip.fader.gain.setValueAtTime(tr.vol * s[0].val, 0);
-                s.forEach(pt => strip.fader.gain.linearRampToValueAtTime(tr.vol * pt.val, Math.max(0, pt.bar * spb)));
-            } else strip.fader.gain.value = tr.vol;
+            if (!scheduleAuto(strip, tr, 'vol', a, b, spb, tr.vol)) strip.fader.gain.value = tr.vol;
+            ['pan', 'rev', 'lp'].forEach(key => scheduleAuto(strip, tr, key, a, b, spb, 1));
 
             tr.regions.forEach(r => {
                 if (tr.type === 'audio') {
-                    WD.model.audioPieces(r).forEach(pc => {
-                        const t = pc.startBar * spb;
-                        events.push({ t, fn: () => WD.channel.startRegionSource(oc, strip.input, pc, t, 0, pc.lengthBars * spb) });
+                    M.audioPieces(r).forEach(pc => {
+                        const end = pc.startBar + pc.lengthBars;
+                        if (end <= a + 1e-6 || pc.startBar >= b - 1e-6) return;
+                        const skip = Math.max(0, a - pc.startBar) * spb;
+                        const t = Math.max(0, pc.startBar - a) * spb;
+                        events.push({ t, fn: () => WD.channel.startRegionSource(oc, strip.input, pc, t, skip, pc.lengthBars * spb - skip) });
                     });
                     return;
                 }
@@ -51,13 +75,14 @@
                     for (let k = 0; ; k++) {
                         const abs = r.startBar + k * L + nt.t;
                         if (abs >= r.startBar + r.lengthBars) break;
-                        const t = abs * spb;
+                        if (abs < a - 1e-6 || abs >= b - 1e-6) continue;
+                        const t = (abs - a) * spb;
                         events.push({ t, fn: () => WD.instruments.play(tr, nt.n, t, nt.d * spb, nt.v, strip.input) });
                     }
                 });
             });
         }
-        events.sort((a, b) => a.t - b.t);
+        events.sort((x, y) => x.t - y.t);
         let next = 0;
         const planUntil = end => { while (next < events.length && events[next].t < end) events[next++].fn(); };
         const WINDOW = 2;

@@ -119,7 +119,7 @@
 
             box.append(
                 el('h2', {}, 'Audio-Eingang'),
-                needsPermission ? el('p', {}, 'Die Gerätenamen erscheinen, sobald du den Mikrofon-Zugriff erlaubt hast: „Pegel testen“ klicken.') : null,
+                el('p', { hidden: !needsPermission }, 'Die Gerätenamen erscheinen, sobald du den Mikrofon-Zugriff erlaubt hast: „Pegel testen“ klicken.'),
                 el('div', { class: 'form-row' }, el('label', {}, 'Gerät'), devSel),
                 el('div', { class: 'form-row' }, el('label', {}, t && t.type === 'audio' ? `Kanal für „${t.name}“` : 'Kanal (Audio-Spur wählen)'), chanSel),
                 el('div', { class: 'form-row' }, el('label', {}, 'Eingangspegel (digital)'), trim, trimV),
@@ -170,6 +170,34 @@
         }, { wide: true, onEscape: () => { } });
     }
 
+    function firstStepsDialog() {
+        const STEPS = [
+            ['Vorlage wählen', 'Unter Song findest du fertige Songgerüste. Gitarren und Ukulele sind darin Audio-Spuren zum Einspielen.', 'Vorlage öffnen …', c => { c(); WD.templates.showDialog(); }],
+            ['Stimmen', 'Das Stimmgerät (Strg+U) hört über den Audio-Eingang zu und zeigt die Abweichung jeder Saite.', 'Stimmgerät', c => { c(); WD.tuner.open(); }],
+            ['Eingang messen', 'Unter Audio-Eingang Gerät und Pegel einstellen, dann „Messen“: So liegen deine Aufnahmen später genau im Takt.', 'Audio-Eingang …', c => { c(); inputSettings(); }],
+            ['Aufnehmen', 'Audio-Spur auswählen, R drücken und spielen. Mit eingeschaltetem Cycle (C) entsteht pro Durchgang ein Take; über das Take-Symbol auf der Region klappst du sie auf und setzt aus den besten Stellen einen Comp zusammen.', null],
+            ['Mischen und exportieren', 'Mixer (X) und Regler (B) formen den Klang. Ablage → Als Audio exportieren erzeugt WAV oder MP3, das Spur-Menü „…“ exportiert einzelne Spuren.', null],
+        ];
+        WD.ui.modal((box, close) => {
+            box.append(el('h2', {}, 'Erste Schritte'),
+                el('ol', { class: 'steps' }, STEPS.map(([title, text, label, fn]) => el('li', {},
+                    el('b', {}, title), el('p', {}, text),
+                    label ? el('button', { onclick: () => fn(close) }, label) : null))),
+                el('div', { class: 'modal-btns' }, el('button', { class: 'primary', onclick: close }, 'Schließen')));
+        }, { wide: true, onEscape: () => { } });
+    }
+
+    function creditsDialog() {
+        WD.ui.modal((box, close) => {
+            box.append(el('h2', {}, 'Klangquellen und Lizenzen'),
+                el('p', {}, 'Flügel: Salamander Grand Piano von Alexander Holm (CC BY 3.0).'),
+                el('p', {}, 'E-Bass: FluidR3 GM SoundFont von Frank Wen, aufbereitet von Benjamin Gleitzman (CC BY 3.0).'),
+                el('p', {}, 'Drumkit: Virtuosity Drums (CC0). Die Clap ist synthetisch.'),
+                el('p', {}, 'MP3-Export: lamejs, basierend auf LAME (lame.sourceforge.net, LGPL).'),
+                el('div', { class: 'modal-btns' }, el('button', { class: 'primary', onclick: close }, 'Schließen')));
+        }, { onEscape: () => { } });
+    }
+
     // Audio-Dateien einlesen; pro Datei eine Region, bei Bedarf eine neue Spur
     async function importAudio(files, { track, bar } = {}) {
         await WD.engine.ensure();
@@ -202,5 +230,5 @@
         if (failed.length) WD.ui.alert('Import fehlgeschlagen', `Diese Datei(en) konnte der Browser nicht als Audio lesen: ${failed.join(', ')}. WAV, MP3, FLAC oder M4A funktionieren in der Regel.`);
     }
 
-    WD.projectDialogs = { projectsDialog, backupsDialog, inputSettings, shortcutsDialog, importAudio };
+    WD.projectDialogs = { projectsDialog, backupsDialog, inputSettings, shortcutsDialog, firstStepsDialog, creditsDialog, importAudio };
 })();

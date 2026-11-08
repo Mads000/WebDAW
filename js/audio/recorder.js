@@ -169,6 +169,8 @@
             let idx = allTakes.length - 1;
             if (buffers.length > 1 && main.dur < buffers[0].dur * 0.5) idx = allTakes.length - 2;
             const chosen = buffers[idx];
+            // Gemeinsame Zeitachse fürs Comping (die erste Runde kann vor dem Cycle begonnen haben)
+            allTakes.forEach((tk, i) => { tk.startSec = (buffers[i].bar - chosen.bar) * spb; });
             const r = M.normalizeRegion({
                 startBar: chosen.bar, lengthBars: chosen.dur / spb, bufId: allTakes[idx].bufId,
                 offset: 0, name: 'Take ' + takeNo, notes: [],
@@ -296,14 +298,14 @@
         },
 
         // ----- Tastatur → MIDI -----
-        noteOn(track, n, key) {
+        noteOn(track, n, key, vel = 0.9) {
             if (!R.activeMidiTrack(track.id) || !T.playing) return;
             const it = midi.items.find(i => i.tr.id === track.id);
             const reg = it.reg;
             let t = T.current() - reg.startBar;
             if (t < -1 / 16) return;
             t = Math.max(0, Math.round(t * 16) / 16);
-            const note = { t, n, d: 1 / 8, v: 0.9 };
+            const note = { t, n, d: 1 / 8, v: vel };
             reg.notes.push(note);
             const barL = M.barLen();
             reg.lengthBars = Math.max(reg.lengthBars, Math.ceil((t + .01) / barL) * barL);

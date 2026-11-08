@@ -11,7 +11,7 @@
         WD.history.run('Sound wechseln', () => {
             t[key] = value;
             // Eigene Spurnamen bleiben erhalten
-            if (!t.customName) t.name = value;
+            if (!t.customName) t.name = WD.instruments.label(value);
         });
         bus.emit('tracks');
         render();
@@ -32,22 +32,23 @@
             el('span', { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, label));
     }
     const matches = s => !query || s.toLowerCase().includes(query);
+    const L = WD.instruments.label;
 
     function renderSounds(t) {
         const secs = [];
         if (t.type === 'drum') {
-            secs.push(['Drum-Kits', Object.keys(KITS).filter(matches).map(nm => item(nm, 'drums', t.kit === nm, () => setSound(t, 'kit', nm)))]);
+            secs.push(['Drum-Kits', Object.keys(KITS).filter(nm => matches(L(nm))).map(nm => item(L(nm), 'drums', t.kit === nm, () => setSound(t, 'kit', nm)))]);
         } else if (t.type === 'inst') {
             const cats = [];
             Object.keys(INSTR).forEach(nm => { const c = INSTR[nm].cat || 'Sonstige'; if (!cats.includes(c)) cats.push(c); });
             cats.forEach(c => {
-                const names = Object.keys(INSTR).filter(nm => (INSTR[nm].cat || 'Sonstige') === c && matches(nm));
-                if (names.length) secs.push([c, names.map(nm => item(nm, INSTR[nm].iconName || WD.icons.CAT_ICON[c] || 'keys', t.inst === nm, () => setSound(t, 'inst', nm)))]);
+                const names = Object.keys(INSTR).filter(nm => (INSTR[nm].cat || 'Sonstige') === c && matches(L(nm)));
+                if (names.length) secs.push([c, names.map(nm => item(L(nm), INSTR[nm].iconName || WD.icons.CAT_ICON[c] || 'keys', t.inst === nm, () => setSound(t, 'inst', nm)))]);
             });
         }
-        Object.entries(WD.patches.PATCHES).forEach(([group, patches]) => {
-            const names = Object.keys(patches).filter(matches);
-            if (names.length) secs.push(['Klang: ' + group, names.map(nm => item(nm, 'knob', t.patch === nm, () => { WD.patches.apply(t, nm); render(); }))]);
+        WD.patches.groupsFor(t).forEach(group => {
+            const names = Object.keys(WD.patches.PATCHES[group]).filter(nm => matches(WD.patches.label(nm)));
+            if (names.length) secs.push(['Klang: ' + group, names.map(nm => item(WD.patches.label(nm), 'knob', t.patch === nm, () => { WD.patches.apply(t, nm); render(); }))]);
         });
         secs.forEach(([title, items]) => { list.append(el('div', { class: 'libsec' }, title), ...items); });
         if (!secs.length) list.append(el('div', { class: 'libitem empty' }, 'Nichts gefunden.'));

@@ -12,7 +12,7 @@
     }
     const contentKey = (tr, r) => [
         WD.view.ppb, WD.view.rowH, r.lengthBars.toFixed(4), r.loopLen, (r.offset || 0).toFixed(4), r.rate, r.gain, r.bufId,
-        r.fadeIn, r.fadeOut, WD.project.bpm, r.bufId ? 0 : notesHash(r),
+        r.fadeIn, r.fadeOut, WD.project.bpm, r.bufId ? 0 : notesHash(r), r.comp ? JSON.stringify(r.comp) : 0,
     ].join('|');
 
     function drawWave(cv, tr, r, w, h) {
@@ -30,20 +30,31 @@
         const looped = WD.model.isLooped(r), segSec = looped ? r.loopLen * spb : lenSec;
         const vol = r.gain === undefined ? 1 : r.gain;
         const mid = h / 2, amp = h / 2 - 1;
-        const total = peaks.length / 2;
+        // Ein Comp besteht aus Abschnitten verschiedener Takes; ohne Comp ist es ein einziger Abschnitt
+        const parts = r.comp ? WD.model.compPieces(Object.assign({}, r, { startBar: 0, lengthBars: segSec / spb, loopLen: 0 })) : null;
         for (let x = 0; x < w; x++) {
             // Bei Loops beginnt jeder Durchgang wieder am Anfang des Inhalts
             const p0 = (x / w) * lenSec, k = Math.floor(p0 / segSec + 1e-9);
             const q0 = p0 - k * segSec, q1 = Math.min(segSec, ((x + 1) / w) * lenSec - k * segSec);
             g.fillStyle = k ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.82)';
-            const t0 = (r.offset || 0) + q0 * rate, t1 = (r.offset || 0) + q1 * rate;
-            let i0 = Math.floor(t0 * sr / bin), i1 = Math.max(i0 + 1, Math.ceil(t1 * sr / bin));
+            let pk = peaks, off = (r.offset || 0), base = 0, psr = sr;
+            if (parts) {
+                const part = parts.find(s => q0 >= s.startBar * spb && q0 < (s.startBar + s.lengthBars) * spb);
+                if (!part) continue;
+                pk = WD.audioStore.peaks(part.bufId);
+                if (!pk) continue;
+                psr = WD.audioStore.get(part.bufId).sampleRate;
+                off = part.offset; base = part.startBar * spb;
+            }
+            const total = pk.length / 2;
+            const t0 = off + (q0 - base) * rate, t1 = off + (q1 - base) * rate;
+            let i0 = Math.floor(t0 * psr / bin), i1 = Math.max(i0 + 1, Math.ceil(t1 * psr / bin));
             if (i0 >= total) continue;
             i1 = Math.min(i1, total);
             let mn = 1, mx = -1;
             for (let i = i0; i < i1; i++) {
-                if (peaks[i * 2] < mn) mn = peaks[i * 2];
-                if (peaks[i * 2 + 1] > mx) mx = peaks[i * 2 + 1];
+                if (pk[i * 2] < mn) mn = pk[i * 2];
+                if (pk[i * 2 + 1] > mx) mx = pk[i * 2 + 1];
             }
             const y0 = mid - Math.min(1, mx * vol) * amp, y1 = mid - Math.max(-1, mn * vol) * amp;
             g.fillRect(x, y0, 1, Math.max(1, y1 - y0));
@@ -122,10 +133,15 @@
         if (!hasL && left) left.remove();
 
         c.head.textContent = '';
-        c.head.append(labelOf(r));
         if (r.takes && r.takes.length > 1) {
-            c.head.append(el('span', { class: 'rtake', 'data-tip': 'Take wechseln: im Editor' }, `Take ${(r.takeIdx || 0) + 1}/${r.takes.length}`));
+            const open = WD.view.takesOpen.has(r.id);
+            c.head.append(el('span', { class: 'rtake' + (open ? ' open' : ''), 'data-tip': open ? 'Takes einklappen' : 'Takes aufklappen und Bereiche auswählen (Comping)' },
+                (open ? '▾ ' : '▸ ') + (r.comp ? `Comp · ${r.takes.length} Takes` : `Take ${(r.takeIdx || 0) + 1}/${r.takes.length}`)));
         }
+        c.head.append(labelOf(r));
+        node.style.bottom = 'auto';
+        node.style.height = WD.view.rowH - 5 + 'px';
+        WD.comping.sync(c, tr, r, lane);
 
         const key = contentKey(tr, r);
         if (c.key !== key) {
@@ -143,8 +159,9 @@
 
     function syncLane(tr, lane) {
         const keep = new Set(tr.regions.map(r => r.id));
-        lane.querySelectorAll(':scope > .region').forEach(n => { if (!keep.has(n.dataset.id)) n.remove(); });
+        lane.querySelectorAll(':scope > .region, :scope > .takes-panel').forEach(n => { if (!keep.has(n.dataset.id)) n.remove(); });
         tr.regions.forEach(r => syncRegion(tr, r, lane));
+        if (lane.parentElement) lane.parentElement.style.height = WD.view.rowH + WD.comping.extraHeight(tr) + 'px';
     }
 
     function renderAll() {
@@ -155,7 +172,7 @@
             syncLane(tr, lane);
             tr.regions.forEach(r => seen.add(r.id));
         });
-        cache.forEach((c, id) => { if (!seen.has(id)) { c.node.remove(); cache.delete(id); } });
+        cache.forEach((c, id) => { if (!seen.has(id)) { c.node.remove(); if (c.panel) c.panel.remove(); cache.delete(id); } });
     }
     function refreshSelection() {
         cache.forEach((c, id) => c.node.classList.toggle('sel', WD.view.selRegionIds.has(id)));

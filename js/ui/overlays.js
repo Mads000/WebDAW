@@ -32,9 +32,7 @@
             else e.stopPropagation();
         };
         addEventListener('keydown', onKey, true);
-        back.addEventListener('pointerdown', e => {
-            if (e.target === back && onEscape) { onEscape(); close(); }
-        });
+        // Ein Klick neben den Dialog schließt bewusst nichts; dafür gibt es die Knöpfe und Escape
         build(box, close);
         root().append(back);
         const first = box.querySelector('input[type=text]') || box.querySelector('button.primary') || box.querySelector('button');

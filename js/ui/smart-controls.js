@@ -34,10 +34,12 @@
         Gitarren: 'guitar', Britpop: 'guitar', Akustisch: 'guitar', Bass: 'bass', Keys: 'keys', Mallets: 'keys',
         Synth: 'synth', Elektronisch: 'synth', Orchestral: 'orchestral',
     };
+    const DIV_LABELS = [['1/4.', '1/4 punkt.'], ['1/4', '1/4'], ['1/8.', '1/8 punkt.'], ['1/8', '1/8'], ['1/8T', '1/8 Triole'], ['1/16', '1/16']];
     const setFor = t => {
         if (t.type === 'drum') return 'drums';
         if (t.type === 'audio') return 'audio';
         const d = WD.instruments.INSTR[t.inst];
+        if (d && d.family === 'bass') return 'bass';
         return (d && CAT_SET[d.cat]) || 'keys';
     };
 
@@ -52,6 +54,8 @@
         const driveType = el('select', { 'aria-label': 'Drive-Art', onchange: e => { WD.history.run('Drive-Art', () => { t.fx.driveType = e.target.value; }); bus.emit('mix'); e.target.blur(); } },
             new Option('Overdrive', 'overdrive', false, t.fx.driveType !== 'distortion'),
             new Option('Distortion', 'distortion', false, t.fx.driveType === 'distortion'));
+        const dlyDiv = el('select', { 'aria-label': 'Echo-Zeit', onchange: e => { WD.history.run('Echo-Zeit', () => { t.fxDlyDiv = e.target.value; }); bus.emit('mix'); e.target.blur(); } },
+            DIV_LABELS.map(([v, l]) => new Option(l, v, false, (t.fxDlyDiv || '1/8.') === v)));
         const dbl = el('input', {
             type: 'checkbox', checked: !!t.dbl, 'aria-label': 'Doubler',
             onchange: e => { WD.history.run('Doubler', () => { t.dbl = e.target.checked; }); bus.emit('mix'); e.target.blur(); refresh(); },
@@ -72,9 +76,12 @@
             card('Bitcrush', t.fx.crush > 0, kn('Stärke', () => t.fx.crush, v => { t.fx.crush = v; })),
             card('Chorus', t.fx.chorus > 0, kn('Mix', () => t.fx.chorus, v => { t.fx.chorus = v; })),
             card('Limiter', t.fx.limit > 0, kn('Stärke', () => t.fx.limit, v => { t.fx.limit = v; })),
-            card('Echo', t.fxDly > 0, kn('Send', () => t.fxDly || 0, v => { t.fxDly = v; })),
-            card('Hall', t.fxRev > 0, kn('Send', () => t.fxRev || 0, v => { t.fxRev = v; })));
+            card('Echo', t.fxDly > 0, kn('Send', () => t.fxDly || 0, v => { t.fxDly = v; }), dlyDiv),
+            card('Hall', t.fxRev > 0, el('div', { class: 'fx-card-row' },
+                kn('Send', () => t.fxRev || 0, v => { t.fxRev = v; }),
+                kn('Raum', () => (t.fxRevSize === undefined ? .5 : t.fxRevSize), v => { t.fxRevSize = v; }, { def: .5, fmt: roomFmt }))));
     }
+    const roomFmt = v => (v < .2 ? 'Kammer' : v < .4 ? 'Klein' : v < .62 ? 'Mittel' : v < .85 ? 'Groß' : 'Halle');
 
     WD.bottom.register('smart', host => {
         const t = WD.model.selTrack();
@@ -83,7 +90,7 @@
             return null;
         }
         const set = SETS[setFor(t)];
-        const typeLabel = t.type === 'drum' ? `Kit: ${t.kit}` : t.type === 'audio' ? 'Audio-Spur' : t.inst;
+        const typeLabel = t.type === 'drum' ? `Kit: ${WD.instruments.label(t.kit)}` : t.type === 'audio' ? 'Audio-Spur' : WD.instruments.label(t.inst);
         const knobs = el('div', { class: 'smart-knobs' });
         set.forEach(key => {
             const d = m[key];
@@ -96,7 +103,7 @@
 
         const head = el('div', { class: 'pane-head' },
             el('span', { class: 'pane-title' }, t.name),
-            el('span', { class: 'smart-sub' }, typeLabel + (t.patch ? ' · ' + t.patch : '')),
+            el('span', { class: 'smart-sub' }, typeLabel + (t.patch ? ' · ' + WD.patches.label(t.patch) : '')),
             el('span', { class: 'spacer' }),
             el('button', { onclick: () => WD.patches.doubleTrack(t), 'data-tip': 'Neue Spur mit gleichem Klang und gespiegeltem Panorama, aufnahmebereit' }, 'Doppeln'),
             t.type === 'audio' ? el('button', { onclick: () => WD.patches.harmonyTrack(t), 'data-tip': 'Neue, leisere Spur für eine zweite Stimme' }, 'Harmonie') : null);

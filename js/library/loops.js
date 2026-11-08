@@ -65,11 +65,11 @@ WD.LOOPS = (() => {
         { name: 'Brit Rock Beat', type: 'drum', len: 4, notes: dn },
         { name: 'Half-Time Beat', type: 'drum', len: 4, notes: ht },
         {
-            name: 'Tambourine 1/8', type: 'drum', len: 1,
+            name: 'Tamburin 1/8', type: 'drum', len: 1,
             notes: Array.from({ length: 8 }, (_, i) => ({ t: i / 8, n: 7, d: .03, v: i % 2 ? .5 : .9 }))
         },
         {
-            name: 'Tambourine Offbeat', type: 'drum', len: 1,
+            name: 'Tamburin Offbeat', type: 'drum', len: 1,
             notes: [{ t: .25, n: 7, d: .03 }, { t: .75, n: 7, d: .03 }]
         },
         {

@@ -310,8 +310,19 @@ function sub808(m, t, d, x) {            // lang ausklingender Sub mit Pitch-Fal
     o.connect(g); g.connect(x); o.start(t); o.stop(end + .02);
 }
 
-const INSTR = {
+// Gesampelte Instrumente: fehlen die Daten, spielt der Synth-Klang weiter. Anschlagstärke kommt als fünfter Wert.
+function sampledPiano(m, t, d, x, vel) {
+    if (!WD.samples.has('piano')) return piano(m, t, d, x);
+    WD.samples.playPitched('piano', m, t, d, x, { release: .35, gain: .55, brightness: vel === undefined ? .8 : vel });
+}
+function sampledBass(m, t, d, x) {
+    if (!WD.samples.has('bass')) return simpleOsc(m, t, d, x, 'sawtooth', 650, .5, .01, .12);
+    WD.samples.playPitched('bass', m, t, d, x, { release: .1, gain: .6, maxLen: 8 });
+}
 
+const INSTR = {
+    'Sampled Grand': { cat: 'Echte Samples', family: 'keys', iconName: 'keys', play: sampledPiano },
+    'Sampled Bass': { cat: 'Echte Samples', family: 'bass', iconName: 'bass', play: sampledBass },
     'Clean Guitar': { cat: 'Gitarren', play: gtClean },
     'Overdrive Guitar': { cat: 'Gitarren', play: gtDrive },
     '12-String Guitar': { cat: 'Gitarren', play: gt12 },
@@ -360,7 +371,25 @@ const INSTR = {
     '808 Sub': { cat: 'Elektronisch', iconName: 'bass', play: sub808 },
 };
 
+// Interne Namen bleiben (sie stehen in gespeicherten Projekten), angezeigt wird einheitlich Deutsch
+const LABELS = {
+    'Sampled Grand': 'Flügel (Sample)', 'Sampled Bass': 'E-Bass (Sample)', 'Sampled Kit': 'Akustik-Kit (Sample)',
+    'Clean Guitar': 'Clean-Gitarre', 'Overdrive Guitar': 'Overdrive-Gitarre', '12-String Guitar': '12-saitige Gitarre',
+    'Muted Guitar': 'Abgedämpfte Gitarre', 'Nylon Guitar': 'Nylongitarre', 'Bass': 'Synth-Bass', 'Picked Bass': 'Plektrum-Bass',
+    'Sub Bass': 'Sub-Bass', 'Fuzz Bass': 'Fuzz-Bass', 'Grand Piano': 'Flügel (Synth)', 'Organ': 'Orgel', 'Upright Piano': 'Klavier',
+    'Hammond Organ': 'Hammond-Orgel', 'Rock Organ': 'Rock-Orgel', 'Harpsichord': 'Cembalo', 'Vibraphone': 'Vibraphon', 'Music Box': 'Spieluhr',
+    'Synth Lead': 'Synth-Lead', 'Synth Pad': 'Synth-Fläche', 'Synth Brass': 'Synth-Bläser', 'Synth Pluck': 'Synth-Pluck',
+    'Strings': 'Streicher', 'Brass': 'Bläser', 'Flute': 'Querflöte', 'Choir': 'Chor', 'Vocal Oohs': 'Chor (Oohs)',
+    'Wall of Guitars': 'Gitarrenwand', 'Britpop Lead': 'Britpop-Lead', 'Tremolo Guitar': 'Tremolo-Gitarre', 'Tin Whistle': 'Tin Whistle',
+    'Soul Brass': 'Soul-Bläser', 'Gospel Choir': 'Gospelchor', 'Steel Acoustic': 'Westerngitarre', 'Indie Jangle': 'Indie-Jangle',
+    'Power Chords': 'Powerchords', 'Hyper Saw': 'Hyper-Saw', 'Glass Bell': 'Glasglocke', 'Lo-Fi Keys': 'Lo-Fi-Keys', '808 Sub': '808-Sub',
+    'Rock Kit': 'Rock-Kit', 'Brit Pop': 'Britpop-Kit', 'Britpop Anthem': 'Britpop-Hymne', '808': '808-Kit', 'LoFi': 'Lo-Fi-Kit',
+    'Live Room': 'Live-Raum', 'Bedroom': 'Bedroom-Kit', 'Hyperpop': 'Hyperpop-Kit',
+};
+const FAMILY = { Gitarren: 'guitar', Britpop: 'guitar', Akustisch: 'guitar', Bass: 'bass' };
+
 const KITS = {
+    'Sampled Kit': { sampled: true, kick: [150, 45, .45], snF: 1800, snD: .2, snT: 180, htF: 8000, htD: .05, ohD: .3, clF: 1400 },
     'Rock Kit': { kick: [150, 45, .45], snF: 1800, snD: .2, snT: 180, htF: 8000, htD: .05, ohD: .3, clF: 1400 },
     'Brit Pop': { kick: [135, 40, .5], snF: 1500, snD: .22, snT: 165, htF: 7000, htD: .06, ohD: .35, clF: 1200 },
     'Britpop Anthem': { kick: [145, 42, .55], snF: 1550, snD: .3, snT: 170, htF: 7200, htD: .07, ohD: .4, clF: 1250, room: .35, crD: 2.4 },
@@ -377,8 +406,9 @@ function noiseHit(t, v, type, f, dur, dest) {
     g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
     s.connect(fl); fl.connect(g); g.connect(dest); s.start(t); s.stop(t + dur + .05);
 }
-function playDrum(lane, kitName, t, dest) {
+function playDrum(lane, kitName, t, dest, chokeGroup) {
     const k = KITS[kitName] || KITS['Rock Kit'];
+    if (k.sampled && WD.samples.has('drums', lane)) { WD.samples.playDrum(lane, t, dest, chokeGroup, .9); return; }
     if (lane === 0) {
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.frequency.setValueAtTime(k.kick[0], t);
@@ -410,10 +440,13 @@ function playDrum(lane, kitName, t, dest) {
     }
 }
 
-const DRUMLANES = ['Kick', 'Snare', 'HiHat', 'OpenHat', 'Clap', 'Tom', 'Crash', 'Tamb'];
+const DRUMLANES = ['Kick', 'Snare', 'Hi-Hat', 'Open-Hat', 'Clap', 'Tom', 'Crash', 'Tamburin'];
 
 WD.instruments = {
     INSTR, KITS, DRUMLANES,
+    label: name => LABELS[name] || name,
+    // guitar, bass oder keys: bestimmt die passenden Regler und Klang-Presets
+    family(name) { const d = INSTR[name]; return (d && (d.family || FAMILY[d.cat])) || 'keys'; },
     // Spielt eine Note der Spur in das angegebene Ziel
     play(track, n, t, durSec, vel, dest) {
         ctx = dest.context;
@@ -422,8 +455,20 @@ WD.instruments = {
             out = ctx.createGain(); out.gain.value = Math.max(.05, vel);
             out.connect(dest);
         }
-        if (track.type === 'drum') playDrum(n, track.kit, t, out);
-        else (INSTR[track.inst] || INSTR['Synth Lead']).play(n, t, durSec, out);
+        if (track.type === 'drum') playDrum(n, track.kit, t, out, dest);
+        else (INSTR[track.inst] || INSTR['Synth Lead']).play(n, t, durSec, out, vel);
+    },
+    // Live gehaltene Note (MIDI-Keyboard): klingt bis zum Aufruf der Rückgabefunktion
+    hold(track, n, vel) {
+        const strip = WD.engine.strip(track), c = WD.engine.ctx;
+        const g = c.createGain();
+        g.connect(strip.input);
+        WD.instruments.play(track, n, c.currentTime, track.type === 'drum' ? .4 : 10, vel, g);
+        return () => {
+            if (track.type === 'drum') return;
+            g.gain.setTargetAtTime(0, c.currentTime, .05);
+            setTimeout(() => g.disconnect(), 400);
+        };
     },
     // Live-Vorhören einer Note über den Kanalzug der Spur
     preview(track, n, durSec, vel) {

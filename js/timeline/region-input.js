@@ -170,7 +170,8 @@
 
     rows.addEventListener('pointerdown', e => {
         if (e.button !== 0) return;
-        if (e.target.closest('.thead') || e.target.classList.contains('autoCv')) return;
+        if (e.target.closest('.thead') || e.target.classList.contains('autoCv') || e.target.closest('.takes-panel')) return;
+        if (e.target.classList.contains('rtake')) { WD.comping.toggle(e.target.closest('.region').dataset.id); return; }
         const laneEl = e.target.closest('.tlane');
         if (!laneEl) return;
         e.preventDefault();
@@ -197,7 +198,7 @@
     });
 
     rows.addEventListener('dblclick', e => {
-        if (e.target.closest('.thead') || e.target.classList.contains('autoCv')) return;
+        if (e.target.closest('.thead') || e.target.classList.contains('autoCv') || e.target.closest('.takes-panel') || e.target.classList.contains('rtake')) return;
         const laneEl = e.target.closest('.tlane');
         if (!laneEl) return;
         const regionEl = e.target.closest('.region');
@@ -219,6 +220,7 @@
         const laneEl = e.target.closest('.tlane');
         if (!laneEl) return;
         e.preventDefault();
+        if (e.target.closest('.takes-panel')) return;
         const regionEl = e.target.closest('.region');
         if (!regionEl) {
             const tr = M.track(laneEl.dataset.id);

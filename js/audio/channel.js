@@ -7,6 +7,8 @@
 (() => {
     const { dbToGain } = WD;
 
+    const lpFreq = v => 18000 * Math.pow(1 - v, 2.2) + 300;
+
     function driveCurve(amount, type) {
         const n = 2049, c = new Float32Array(n); // ungerade: Eingang 0 trifft exakt die Mitte, kein Gleichanteil
         // Overdrive: weiche, asymmetrische Röhren-Kurve. Distortion: härter, fast Rechteck.
@@ -28,8 +30,31 @@
         const revSend = ctx.createGain(), dlySend = ctx.createGain();
         fader.connect(muteG); muteG.connect(pan);
         pan.connect(dests.output);
-        pan.connect(revSend); revSend.connect(dests.reverb);
-        pan.connect(dlySend); dlySend.connect(dests.delay);
+        // Hall: Send → Überblendung zwischen zwei Raumgrößen. Echo: Send → Bus der gewählten Notenlänge.
+        const revA = ctx.createGain(), revB = ctx.createGain();
+        pan.connect(revSend); pan.connect(dlySend);
+        revSend.connect(revA); revSend.connect(revB);
+        let revRoute = null, dlyRoute = null;
+        const hasAuto = (t, key) => (t.autos && t.autos[key] && t.autos[key].length > 0);
+        function routeSends(t) {
+            const wantsRev = (t.fxRev || 0) > 0 || hasAuto(t, 'rev');
+            const size = t.fxRevSize === undefined ? 0.5 : WD.clamp(t.fxRevSize, 0, 1);
+            const pos = size * 2, i = Math.min(1, Math.floor(pos)), f = pos - i;
+            const route = wantsRev ? i + (f > 0 ? ':2' : ':1') : '';
+            if (route !== revRoute) {
+                revRoute = route;
+                revA.disconnect(); revB.disconnect();
+                if (wantsRev) { revA.connect(dests.reverb(i)); if (f > 0) revB.connect(dests.reverb(i + 1)); }
+            }
+            revA.gain.value = Math.cos(f * Math.PI / 2);
+            revB.gain.value = Math.sin(f * Math.PI / 2);
+            const div = (t.fxDly || 0) > 0 ? (t.fxDlyDiv || '1/8.') : '';
+            if (div !== dlyRoute) {
+                dlyRoute = div;
+                dlySend.disconnect();
+                if (div) dlySend.connect(dests.delay(div));
+            }
+        }
 
         // Lazy angelegte Effekt-Blöcke, jeder als {in, out}
         const blocks = {};
@@ -95,6 +120,7 @@
                 case 'dbl': return !!t.dbl;
                 case 'eqL': case 'eqM': case 'eqH': return !!t[key];
                 case 'cmp': return (t.fxCmp || 0) > 0;
+                case 'lp': return (fx.lp || 0) > 0 || hasAuto(t, 'lp');
                 default: return (fx[key] || 0) > 0;
             }
         };
@@ -119,6 +145,7 @@
         function update(t, { immediate = false } = {}) {
             const fx = t.fx || {};
             rewire(t);
+            routeSends(t);
             const set = (param, v) => {
                 if (immediate) param.value = v; else param.setTargetAtTime(v, ctx.currentTime, 0.012);
             };
@@ -126,7 +153,7 @@
             if (blocks.eqM) set(blocks.eqM.node.gain, t.eqM || 0);
             if (blocks.eqH) set(blocks.eqH.node.gain, t.eqH || 0);
             if (blocks.hp) blocks.hp.node.frequency.value = 20 + Math.pow(fx.hp, 2) * 780;
-            if (blocks.lp) blocks.lp.node.frequency.value = 18000 * Math.pow(1 - fx.lp, 2.2) + 300;
+            if (blocks.lp && !hasAuto(t, 'lp')) blocks.lp.node.frequency.value = lpFreq(fx.lp);
             if (blocks.cmp) {
                 blocks.cmp.node.threshold.value = -(t.fxCmp || 0) * 35;
                 blocks.cmp.node.ratio.value = 1 + (t.fxCmp || 0) * 9;
@@ -143,21 +170,30 @@
                 b.tone.frequency.value = type === 'distortion' ? 4200 : 6500;
                 b.post.gain.value = dbToGain(-fx.drive * (type === 'distortion' ? 11 : 7));
             }
-            set(pan.pan, t.pan || 0);
-            set(revSend.gain, t.fxRev || 0);
+            if (!hasAuto(t, 'pan')) set(pan.pan, t.pan || 0);
+            if (!hasAuto(t, 'rev')) set(revSend.gain, t.fxRev || 0);
             set(dlySend.gain, t.fxDly || 0);
         }
 
         update(track, { immediate: true });
 
+        // Ziel einer Automation: Audio-Parameter und Umrechnung vom Wert 0…1
+        function autoParam(key) {
+            if (key === 'vol') return { param: fader.gain, map: v => v };
+            if (key === 'pan') return { param: pan.pan, map: v => v * 2 - 1 };
+            if (key === 'rev') return { param: revSend.gain, map: v => v };
+            if (key === 'lp' && blocks.lp) return { param: blocks.lp.node.frequency, map: v => lpFreq(1 - v) };
+            return null;
+        }
+
         return {
-            input, fader, muteG, pan, live, update,
+            input, fader, muteG, pan, live, update, autoParam,
             setMuted(on, immediate) {
                 if (immediate) muteG.gain.value = on ? 0 : 1;
                 else muteG.gain.setTargetAtTime(on ? 0 : 1, ctx.currentTime, 0.006);
             },
             destroy() {
-                [input, fader, muteG, pan, revSend, dlySend].forEach(n => { try { n.disconnect(); } catch { /* */ } });
+                [input, fader, muteG, pan, revSend, dlySend, revA, revB].forEach(n => { try { n.disconnect(); } catch { /* */ } });
                 Object.values(blocks).forEach(b => {
                     try { b.in.disconnect(); b.out.disconnect(); } catch { /* */ }
                     if (b.lfos) b.lfos.forEach(l => { try { l.stop(); } catch { /* */ } });

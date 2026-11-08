@@ -48,6 +48,9 @@
             armable && { label: 'Audio-Eingang …', icon: 'mic', action: () => WD.projectDialogs.inputSettings() },
             { label: 'Smart Controls öffnen', icon: 'knob', action: () => { WD.view.selTrackId = t.id; WD.bottom.show('smart'); bus.emit('track:selected'); } },
             { label: t.showAuto ? 'Automation ausblenden' : 'Automation einblenden', icon: 'auto', action: () => { t.showAuto = !t.showAuto; bus.emit('tracks'); } },
+            ...Object.entries(M.AUTO).map(([key, a]) => ({ label: 'Automation: ' + a.label, checked: !!t.showAuto && t.autoParam === key, action: () => { t.autoParam = key; t.showAuto = true; bus.emit('tracks'); } })),
+            { sep: 1 },
+            { label: 'Diese Spur exportieren …', icon: 'file', disabled: !t.regions.length, action: () => WD.exporter.trackDialog(t) },
             { sep: 1 },
             { label: 'Spur löschen', icon: 'trash', danger: true, action: () => deleteTrack(t) },
         ]);
@@ -83,6 +86,13 @@
         addEventListener('pointermove', move); addEventListener('pointerup', up);
     }
 
+    function autoSelect(t) {
+        const s = el('select', { class: 'tauto', 'aria-label': 'Automations-Parameter', 'data-tip': 'Welcher Parameter wird automatisiert?' },
+            Object.entries(M.AUTO).map(([key, a]) => new Option(a.short, key, false, (t.autoParam || 'vol') === key)));
+        s.onchange = () => { t.autoParam = s.value; bus.emit('tracks'); };
+        return s;
+    }
+
     function buildHead(t) {
         const sel = WD.view.selTrackId === t.id;
         const tile = el('div', { class: 'ttile', style: { background: t.color }, 'data-tip': 'Ziehen: Spur verschieben' }, WD.icons.icon(WD.icons.trackIcon(t)));
@@ -108,7 +118,7 @@
         if (t.type === 'audio') {
             buttons.append(miniBtn('i', '', t.monitor, 'Monitoring: Eingang hören', () => WD.input.toggleMonitor(t), 'monitor'));
         }
-        buttons.append(miniBtn('a', '', t.showAuto, 'Lautstärke-Automation', () => { t.showAuto = !t.showAuto; bus.emit('tracks'); }, 'auto'));
+        buttons.append(miniBtn('a', '', t.showAuto, 'Automation: Lautstärke, Panorama, Hall, Filter', () => { t.showAuto = !t.showAuto; bus.emit('tracks'); }, 'auto'));
 
         const pan = WD.controls.knob({
             size: 'sm', min: -1, max: 1, def: 0, label: 'Panorama', historyLabel: 'Panorama',
@@ -127,7 +137,7 @@
         const meta = el('div', { class: 'tmeta' },
             el('div', { class: 'tline' }, nameEl, more),
             el('div', { class: 'tline' }, buttons, el('div', { style: { flex: 1 } }), pan),
-            el('div', { class: 'tline tvolline' }, vol),
+            el('div', { class: 'tline tvolline' }, t.showAuto ? autoSelect(t) : null, vol),
             meter);
 
         const head = el('div', {
@@ -155,7 +165,11 @@
             lane.style.width = w + 'px';
             lane.className = 'tlane' + (v.selTrackId === t.id ? ' sel' : '') + (t.arm ? ' rec-armed' : '');
             lane.querySelectorAll('.autoCv').forEach(c => c.remove());
-            if (t.showAuto) lane.append(WD.automation.create(t, w, v.rowH - 1));
+            if (t.showAuto) {
+                const cv = WD.automation.create(t, w, v.rowH - 1);
+                Object.assign(cv.style, { bottom: 'auto', height: v.rowH - 1 + 'px' });
+                lane.append(cv);
+            }
             row.append(buildHead(t), lane);
             frag.append(row);
         });
@@ -211,7 +225,8 @@
         addTrack(type) {
             const n = WD.project.tracks.filter(t => t.type === type).length + 1;
             const extra = type === 'drum' ? { kit: 'Brit Pop' } : type === 'inst' ? { inst: 'Clean Guitar' } : {};
-            const name = type === 'drum' ? 'Brit Pop' : type === 'inst' ? 'Clean Guitar' : 'Audio ' + n;
+            const L = WD.instruments.label;
+            const name = type === 'drum' ? L('Brit Pop') : type === 'inst' ? L('Clean Guitar') : 'Audio ' + n;
             return hist('Spur hinzufügen', () => M.addTrack(type, name, extra));
         },
         renameTrack, deleteTrack,

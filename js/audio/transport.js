@@ -37,9 +37,9 @@
     }
     const timeOf = bar => { const s = seg(); return s.t + (bar - s.bar) * M.secPerBar(); };
 
-    function autoValAt(tr, bar) {
-        const pts = tr.auto;
-        if (!pts || !pts.length) return 1;
+    function autoValAt(tr, bar, key = 'vol') {
+        const pts = M.autoList(tr, key);
+        if (!pts.length) return M.AUTO[key].def(tr);
         const s = pts.slice().sort((a, b) => a.bar - b.bar);
         if (bar <= s[0].bar) return s[0].val;
         for (let i = 0; i < s.length - 1; i++) {
@@ -155,11 +155,16 @@
         while (anchors.length > 1 && anchors[1].t < now - 1) anchors.shift();
 
         // Automation: weich nachgeführt, deshalb ohne Stufen
-        const bar = posAt(now);
+        applyAutomation(posAt(now), now);
+    }
+
+    function applyAutomation(bar, now) {
         WD.project.tracks.forEach(tr => {
-            if (!tr.auto || !tr.auto.length) return;
-            const st = WD.engine.strip(tr);
-            st.fader.gain.setTargetAtTime(tr.vol * autoValAt(tr, bar), now, 0.015);
+            Object.keys(M.AUTO).forEach(key => {
+                if (!M.autoList(tr, key).length) return;
+                const st = WD.engine.strip(tr), ap = st && st.autoParam(key);
+                if (ap) ap.param.setTargetAtTime((key === 'vol' ? tr.vol : 1) * ap.map(autoValAt(tr, bar, key)), now, 0.015);
+            });
         });
     }
 
@@ -295,6 +300,10 @@
         const now = WD.engine.ctx.currentTime;
         anchors = [{ t: now, bar: posAt(now) }];
     });
+    // Im Stillstand zeigt der Klang den Automationswert an der Abspielposition
+    const applyIdle = () => { if (!playing && WD.engine.ready) applyAutomation(position, WD.engine.ctx.currentTime); };
+    bus.on('transport', applyIdle);
+    bus.on('mix', applyIdle);
     bus.on('tempo', scheduleResync);
     bus.on('audio:edited', scheduleResync);
     bus.on('cycle', scheduleResync);

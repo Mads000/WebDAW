@@ -41,7 +41,7 @@
 .knob { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; width: 66px; flex: none; outline: none; }
 .knob svg { width: 44px; height: 44px; display: block; cursor: ns-resize; }
 .knob.sm { width: 24px; } .knob.sm svg { width: 22px; height: 22px; }
-.knob.md { width: 52px; } .knob.md svg { width: 32px; height: 32px; }
+.knob.md { width: 60px; } .knob.md svg { width: 32px; height: 32px; }
 .knob .k-track { fill: none; stroke: var(--surface-3); stroke-width: 3.2; stroke-linecap: round; }
 .knob .k-val { fill: none; stroke: var(--accent); stroke-width: 3.2; stroke-linecap: round; }
 .knob .k-body { fill: var(--surface-2); stroke: var(--border); stroke-width: 1; }

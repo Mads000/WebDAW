@@ -18,8 +18,10 @@
     // Unten nie so hoch, dass die Spuren keinen Platz mehr haben
     function fitHeight() {
         const free = innerHeight - $('topbar').getBoundingClientRect().height;
-        panel.style.height = Math.min(WD.view.bottomH, Math.max(120, free * 0.58)) + 'px';
+        panel.style.height = Math.min(heightKey() === 'editorH' ? WD.view.editorH : WD.view.bottomH, Math.max(120, free * 0.58)) + 'px';
     }
+    // Der Editor merkt sich eine eigene, größere Höhe
+    function heightKey() { return WD.view.bottom === 'editor' ? 'editorH' : 'bottomH'; }
 
     function render() {
         if (active && active.dispose) active.dispose();
@@ -47,9 +49,10 @@
     // Höhe ziehen
     $('bottomResize').addEventListener('pointerdown', e => {
         e.preventDefault();
-        const y0 = e.clientY, h0 = WD.view.bottomH;
+        const key = heightKey();
+        const y0 = e.clientY, h0 = Math.min(WD.view[key], panel.getBoundingClientRect().height);
         const move = ev => {
-            WD.view.bottomH = Math.max(110, Math.min(innerHeight - 180, h0 + (y0 - ev.clientY)));
+            WD.view[key] = Math.max(110, Math.min(innerHeight - 180, h0 + (y0 - ev.clientY)));
             fitHeight();
         };
         const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); WD.timeline.requestDraw(); };

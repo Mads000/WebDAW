@@ -1,5 +1,5 @@
 {
-  "total": 133,
+  "total": 134,
   "failed": 0,
   "results": [
     {
@@ -125,7 +125,7 @@
     {
       "name": "F2: Tempo-Wechsel ohne Sprung",
       "ok": true,
-      "detail": "0.195 → 0.259"
+      "detail": "0.196 → 0.237"
     },
     {
       "name": "Pause hält die Position",
@@ -250,7 +250,7 @@
     {
       "name": "Delay erzeugt echte Wiederholung",
       "ok": true,
-      "detail": "0.0452"
+      "detail": "0.0449"
     },
     {
       "name": "Panorama",
@@ -275,17 +275,17 @@
     {
       "name": "Aufnahme erzeugt Region",
       "ok": true,
-      "detail": "{\"sec\":2.4586666666666677,\"dur\":2.458666666666667,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":440.0759219088937}"
+      "detail": "{\"sec\":2.4480000000000004,\"dur\":2.448,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":439.95098039215685}"
     },
     {
       "name": "Dauer plausibel",
       "ok": true,
-      "detail": "2.46"
+      "detail": "2.45"
     },
     {
       "name": "Audiosignal des Eingangs kommt unverfälscht an (440 Hz)",
       "ok": true,
-      "detail": "440.1 Hz, Peak 0.49"
+      "detail": "440.0 Hz, Peak 0.49"
     },
     {
       "name": "F9: Mikrofon nach der Aufnahme wieder geschlossen",
@@ -335,7 +335,7 @@
     {
       "name": "Monitoring: Eingang läuft durch den Kanalzug",
       "ok": true,
-      "detail": "0.243"
+      "detail": "0.276"
     },
     {
       "name": "Monitoring aus schließt Eingang",
@@ -370,7 +370,7 @@
     {
       "name": "Stimmgerät erkennt das Eingangssignal (440 Hz)",
       "ok": true,
-      "detail": "440.00003295465683"
+      "detail": "440.00006259022564"
     },
     {
       "name": "Stimmgerät schließt das Mikrofon wieder",
@@ -470,12 +470,12 @@
     {
       "name": "K3: Autosave mit 3 Minuten Audio läuft",
       "ok": true,
-      "detail": "Automatisch gesichert 23:26"
+      "detail": "Automatisch gesichert 19:43"
     },
     {
-      "name": "K3: Nach Neuladen wird Wiederherstellung angeboten",
+      "name": "K3: Letzte Sitzung öffnet ohne Rückfrage",
       "ok": true,
-      "detail": "Letzte Sitzung wiederherstellen?"
+      "detail": ""
     },
     {
       "name": "K3: 3 Minuten Stereo-Audio vollständig wiederhergestellt",
@@ -483,9 +483,9 @@
       "detail": "{\"name\":\"Autosave-Test\",\"dur\":180,\"ch\":2,\"s\":0.30000001192092896}"
     },
     {
-      "name": "K7: Abgelehntes Autosave bleibt als Sicherung",
+      "name": "K7: Anderes ungespeichertes Projekt bleibt als Sicherung",
       "ok": true,
-      "detail": "Autosave-Test 2|Autosave, Testprojekt|Speichern, alt|Speichern"
+      "detail": "Testprojekt|Speichern, alt|Speichern, Testprojekt|Speichern"
     },
     {
       "name": "Aufnahme übersteht Absturz/Neuladen",
@@ -565,7 +565,7 @@
     {
       "name": "P1: Rockin-Demo (122 s Musik) exportiert deutlich schneller als Echtzeit",
       "ok": true,
-      "detail": "7.6 s Rechenzeit (Original: über 120 s, nicht fertig geworden)"
+      "detail": "8.3 s Rechenzeit (Original: über 120 s, nicht fertig geworden)"
     },
     {
       "name": "A2: Bounce ohne Clipping, unter -1 dB",
@@ -575,10 +575,15 @@
     {
       "name": "Bounce nicht stumm",
       "ok": true,
-      "detail": "0.118"
+      "detail": "0.122"
     },
     {
-      "name": "Stems: je Spur eine Datei",
+      "name": "Stems: genau eine ZIP-Datei",
+      "ok": true,
+      "detail": "Rockin_Demo_Stems.zip"
+    },
+    {
+      "name": "Stems: je Spur eine Datei im ZIP",
       "ok": true,
       "detail": "6"
     },
@@ -590,7 +595,7 @@
     {
       "name": "Audio-Region ist beim Abspielen hörbar",
       "ok": true,
-      "detail": "0.226"
+      "detail": "0.199"
     },
     {
       "name": "Mute wirkt auf das Signal",
@@ -630,22 +635,22 @@
     {
       "name": "Fenster 1920×1080: keine Überlappung, kein Überlauf",
       "ok": true,
-      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":677}"
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":527}"
     },
     {
       "name": "Fenster 1440×900: keine Überlappung, kein Überlauf",
       "ok": true,
-      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":497}"
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":347}"
     },
     {
       "name": "Fenster 1280×720: keine Überlappung, kein Überlauf",
       "ok": true,
-      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":317}"
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":267.546875}"
     },
     {
       "name": "Fenster 1024×700: keine Überlappung, kein Überlauf",
       "ok": true,
-      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":297}"
+      "detail": "{\"ovf\":0,\"bar\":83,\"overlap\":0,\"arr\":259.140625}"
     },
     {
       "name": "Fenster 800×600: keine Überlappung, kein Überlauf",
@@ -655,7 +660,7 @@
     {
       "name": "Fenster 420×780: keine Überlappung, kein Überlauf",
       "ok": true,
-      "detail": "{\"ovf\":0,\"bar\":145,\"overlap\":0,\"arr\":315}"
+      "detail": "{\"ovf\":0,\"bar\":145,\"overlap\":0,\"arr\":266.703125}"
     },
     {
       "name": "P5: Im Leerlauf läuft keine Animationsschleife",

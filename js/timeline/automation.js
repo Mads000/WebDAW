@@ -1,9 +1,18 @@
-// Lautstärke-Automation einer Spur. Punkte setzen/ziehen, Doppelklick entfernt.
+// Automation einer Spur (Lautstärke, Panorama, Hall, Filter). Punkte setzen/ziehen, Doppelklick entfernt.
 'use strict';
 (() => {
     const { el } = WD;
+    const M = WD.model;
 
     function create(tr, laneWidth, height) {
+        const key = M.AUTO[tr.autoParam] ? tr.autoParam : 'vol';
+        const points = () => M.autoList(tr, key);
+        const ensure = () => {
+            if (key === 'vol') { if (!tr.auto) tr.auto = []; return tr.auto; }
+            if (!tr.autos) tr.autos = {};
+            if (!tr.autos[key]) tr.autos[key] = [];
+            return tr.autos[key];
+        };
         const dpr = 1;
         const w = Math.min(8192, Math.ceil(laneWidth));
         const sx = w / laneWidth;
@@ -15,10 +24,10 @@
             const g = cv.getContext('2d');
             g.clearRect(0, 0, cv.width, cv.height);
             g.fillStyle = 'rgba(122,79,212,.14)'; g.fillRect(0, 0, cv.width, cv.height);
-            const pts = (tr.auto || []).slice().sort((a, b) => a.bar - b.bar);
+            const pts = points().slice().sort((a, b) => a.bar - b.bar);
             const ppb = WD.view.ppb * sx;
             g.strokeStyle = col; g.lineWidth = 2; g.beginPath();
-            if (!pts.length) { g.moveTo(0, yOf(1)); g.lineTo(cv.width, yOf(1)); }
+            if (!pts.length) { const y = yOf(M.AUTO[key].def(tr)); g.moveTo(0, y); g.lineTo(cv.width, y); }
             else {
                 g.moveTo(0, yOf(pts[0].val));
                 pts.forEach(p => g.lineTo(p.bar * ppb, yOf(p.val)));
@@ -38,17 +47,17 @@
                 val: Math.max(0, Math.min(1, ((height - 6) - (e.clientY - rc.top)) / (height - 12))),
             };
         };
-        const hit = p => (tr.auto || []).find(q => Math.abs(q.bar - p.bar) * WD.view.ppb < 8);
+        const hit = p => points().find(q => Math.abs(q.bar - p.bar) * WD.view.ppb < 8);
 
         cv.addEventListener('pointerdown', e => {
             if (e.button !== 0) return;
             e.stopPropagation(); e.preventDefault();
             cv.setPointerCapture(e.pointerId);
             const tx = WD.history.begin('Automation');
-            if (!tr.auto) tr.auto = [];
+            const list = ensure();
             const p = toPt(e);
             let pt = hit(p);
-            if (!pt) { pt = { bar: p.bar, val: p.val }; tr.auto.push(pt); }
+            if (!pt) { pt = { bar: p.bar, val: p.val }; list.push(pt); }
             pt.val = p.val; draw();
             const move = ev => { const q = toPt(ev); pt.bar = q.bar; pt.val = q.val; draw(); };
             const up = () => {
@@ -64,7 +73,7 @@
             e.stopPropagation();
             const pt = hit(toPt(e));
             if (pt) {
-                WD.history.run('Automation', () => { tr.auto = tr.auto.filter(q => q !== pt); });
+                WD.history.run('Automation', () => { const l = ensure(); l.splice(l.indexOf(pt), 1); });
                 draw();
                 WD.bus.emit('mix');
             }

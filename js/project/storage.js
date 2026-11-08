@@ -126,6 +126,7 @@
                 await pushBackup(p, 'Speichern');
                 await WD.db.put('projects', { id: p.id, name: p.name, updatedAt: Date.now(), json: JSON.stringify(p), tracks: p.tracks.length });
                 await WD.db.delete('autosave', p.id);
+                rememberLast(p.id);
                 dirty = false;
                 savedAt = Date.now();
                 setState('Gespeichert ' + timeStr(savedAt));
@@ -180,6 +181,7 @@
                 const project = WD.fileFormat.sanitize(JSON.parse(rec.json));
                 const missing = await loadBuffers(project);
                 activate(project);
+                rememberLast(project.id);
                 setState('Gespeichert ' + timeStr(rec.updatedAt));
                 if (missing.length) WD.ui.toast(`${missing.length} Audio-Datei(en) dieses Projekts fehlen im Browser-Speicher.`, { type: 'error' });
                 return true;
@@ -277,7 +279,7 @@
             if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { });
             await importLegacyAutosave();
             await recoverRecordings();
-            await offerAutosave();
+            await reopenLast();
         },
         selfTest: { pendingCount: () => pendingBuffers.size },
     };
@@ -301,28 +303,39 @@
         }
     }
 
-    async function offerAutosave() {
+    // Beim Start weiterarbeiten, wo man aufgehört hat: zuerst ungespeicherte Änderungen, sonst das zuletzt benutzte Projekt.
+    // Weitere ungespeicherte Stände anderer Projekte wandern in die Sicherungen.
+    async function reopenLast() {
         const list = (await WD.db.all('autosave')).sort((a, b) => b.savedAt - a.savedAt);
-        if (!list.length) return;
-        const rec = list[0];
-        const when = new Date(rec.savedAt).toLocaleString('de-DE');
-        const ok = await WD.ui.confirm('Letzte Sitzung wiederherstellen?',
-            `„${rec.name}“ wurde am ${when} automatisch gesichert, aber nicht gespeichert. Beim Ablehnen bleibt der Stand unter Ablage → Sicherungen erhalten.`,
-            { ok: 'Wiederherstellen', cancel: 'Später' });
-        for (const other of list) {
-            if (ok && other === rec) continue;
-            await WD.db.put('backups', { projectId: other.id, name: other.name, savedAt: other.savedAt, reason: 'Autosave', json: other.json });
-            await WD.db.delete('autosave', other.id);
+        if (list.length) {
+            const rec = list[0];
+            try {
+                const project = WD.fileFormat.sanitize(JSON.parse(rec.json));
+                const missing = await loadBuffers(project);
+                activate(project);
+                dirty = true; refreshTitle();
+                setState('Wiederhergestellt');
+                rememberLast(project.id);
+                WD.ui.toast(missing.length ? `${missing.length} Audio-Datei(en) fehlen.` : `„${rec.name}“ ist wieder da, samt der noch nicht gespeicherten Änderungen.`, { type: missing.length ? 'error' : 'ok', ms: 5000 });
+            } catch (err) {
+                // Der Stand bleibt im Speicher, nichts geht verloren
+                WD.ui.alert('Letzte Sitzung konnte nicht geöffnet werden', err.message + ' Der Stand bleibt unter Ablage → Sicherungen erhalten.');
+                await WD.db.put('backups', { projectId: rec.id, name: rec.name, savedAt: rec.savedAt, reason: 'Autosave', json: rec.json });
+                await WD.db.delete('autosave', rec.id);
+            }
+            for (const other of list.slice(1)) {
+                await WD.db.put('backups', { projectId: other.id, name: other.name, savedAt: other.savedAt, reason: 'Autosave', json: other.json });
+                await WD.db.delete('autosave', other.id);
+            }
+            return;
         }
-        if (!ok) return;
-        try {
-            const project = WD.fileFormat.sanitize(JSON.parse(rec.json));
-            const missing = await loadBuffers(project);
-            activate(project);
-            dirty = true; refreshTitle();
-            setState('Wiederhergestellt');
-            if (missing.length) WD.ui.toast(`${missing.length} Audio-Datei(en) fehlen.`, { type: 'error' });
-        } catch (err) { WD.ui.alert('Wiederherstellung fehlgeschlagen', err.message); }
+        const last = await WD.db.get('meta', 'lastProject').catch(() => null);
+        const projects = await S.listProjects();
+        const target = (last && projects.find(p => p.id === last.projectId)) || projects[0];
+        if (target) await S.openProject(target.id);
+    }
+    function rememberLast(projectId) {
+        WD.db.put('meta', { id: 'lastProject', projectId }).catch(() => { });
     }
 
     // Aufnahmen, die durch Absturz oder Schließen des Tabs nicht abgeschlossen wurden

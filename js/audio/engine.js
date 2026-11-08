@@ -6,16 +6,25 @@
     const strips = new Map(); // Spur-ID → Kanalzug
 
     // Reproduzierbare Rausch-Impulsantwort: Live und Bounce haben denselben Hall.
-    function buildImpulse(c) {
-        const len = Math.floor(c.sampleRate * 2.2), ir = c.createBuffer(2, len, c.sampleRate);
+    // Drei Raumgrößen; der Regler blendet zwischen je zwei benachbarten. Die mittlere ist der bisherige Hall.
+    const ROOM_SEC = [0.7, 2.2, 5.0];
+    const irCache = new Map();
+    function buildImpulse(c, seconds) {
+        const key = c.sampleRate + '|' + seconds;
+        if (irCache.has(key)) return irCache.get(key);
+        const len = Math.floor(c.sampleRate * seconds), ir = new AudioBuffer({ numberOfChannels: 2, length: len, sampleRate: c.sampleRate });
         let seed = 12345;
         const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 * 2 - 1; };
         for (let ch = 0; ch < 2; ch++) {
             const d = ir.getChannelData(ch);
             for (let i = 0; i < len; i++) d[i] = rnd() * Math.pow(1 - i / len, 2.8);
         }
+        irCache.set(key, ir);
         return ir;
     }
+
+    // Echo-Zeiten in Viertelnoten
+    const DELAY_DIVS = { '1/4.': 1.5, '1/4': 1, '1/8.': 0.75, '1/8': 0.5, '1/8T': 1 / 3, '1/16': 0.25 };
 
     const MODE = {
         clean: null,
@@ -29,14 +38,38 @@
     }
 
     // Master-Kette: Lautstärke → (Warm/90s-Färbung) → Limiter → Ausgang. Auch vom Offline-Rendering genutzt.
-    function buildMaster(c, master, destination) {
+    function buildMaster(c, master, destination, bpm) {
         const input = c.createGain();
         input.gain.value = master.vol;
-        const reverb = c.createConvolver(); reverb.buffer = buildImpulse(c);
-        const delay = c.createDelay(2);
-        const fb = c.createGain(); fb.gain.value = 0.35;
-        delay.connect(fb); fb.connect(delay);
-        reverb.connect(input); delay.connect(input);
+        // Hall- und Echo-Busse entstehen erst, wenn eine Spur sie benutzt
+        const reverbs = [], delays = {};
+        const reverb = i => {
+            if (!reverbs[i]) {
+                reverbs[i] = c.createConvolver();
+                reverbs[i].buffer = buildImpulse(c, ROOM_SEC[i]);
+                reverbs[i].connect(input);
+            }
+            return reverbs[i];
+        };
+        let tempo = bpm;
+        const delay = div => {
+            const key = DELAY_DIVS[div] ? div : '1/8.';
+            if (!delays[key]) {
+                const d = c.createDelay(2), fb = c.createGain();
+                fb.gain.value = 0.35;
+                d.delayTime.value = delaySeconds(tempo, key);
+                d.connect(fb); fb.connect(d); d.connect(input);
+                delays[key] = d;
+            }
+            return delays[key];
+        };
+        const setBpm = (v, now) => {
+            tempo = v;
+            Object.entries(delays).forEach(([k, d]) => {
+                if (now === undefined) d.delayTime.value = delaySeconds(v, k);
+                else d.delayTime.setTargetAtTime(delaySeconds(v, k), now, 0.02);
+            });
+        };
 
         const sat = c.createWaveShaper(); sat.oversample = '4x';
         const comp = c.createDynamicsCompressor();
@@ -58,24 +91,23 @@
             input.connect(sat); sat.connect(comp); comp.connect(limiter);
         }
         setMode(master.mode || 'clean');
-        return { input, reverb, delay, limiter, setMode };
+        return { input, reverb, delay, limiter, setMode, setBpm };
     }
 
-    function delaySeconds(bpm) { return Math.min(1.9, 60 / bpm * 0.75); } // punktierte Achtel
+    function delaySeconds(bpm, div = '1/8.') { return Math.min(1.9, 60 / bpm * (DELAY_DIVS[div] || 0.75)); }
 
     async function init() {
         ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
-        await WD.worklets.load(ctx);
+        await Promise.all([WD.worklets.load(ctx), WD.samples.load(ctx)]);
         const output = ctx.createGain();
         const split = ctx.createChannelSplitter(2);
         const anaL = ctx.createAnalyser(), anaR = ctx.createAnalyser(), spec = ctx.createAnalyser();
         anaL.fftSize = anaR.fftSize = 2048; spec.fftSize = 512;
         output.connect(split); split.connect(anaL, 0); split.connect(anaR, 1);
         output.connect(spec); output.connect(ctx.destination);
-        const master = buildMaster(ctx, WD.project.master, output);
+        const master = buildMaster(ctx, WD.project.master, output, WD.project.bpm);
         const monitor = ctx.createGain(); monitor.gain.value = 0.9; monitor.connect(ctx.destination);
         nodes = { master, monitor, anaL, anaR, spec };
-        master.delay.delayTime.value = delaySeconds(WD.project.bpm);
         WD.engine.sync();
         return ctx;
     }
@@ -94,7 +126,7 @@
         get nodes() { return nodes; },
         get ready() { return !!nodes; },
         isAudible,
-        buildMaster, delaySeconds,
+        buildMaster, delaySeconds, DELAY_DIVS,
 
         strip(track) {
             if (!nodes) return null;
@@ -128,7 +160,7 @@
             });
             nodes.master.setMode(p.master.mode);
             nodes.master.input.gain.setTargetAtTime(p.master.vol, ctx.currentTime, 0.01);
-            nodes.master.delay.delayTime.setTargetAtTime(delaySeconds(p.bpm), ctx.currentTime, 0.02);
+            nodes.master.setBpm(p.bpm, ctx.currentTime);
         },
         setMasterMode(mode) {
             WD.project.master.mode = mode;

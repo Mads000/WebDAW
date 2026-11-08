@@ -19,7 +19,8 @@
             { label: 'Als Datei exportieren (.webdaw)', action: () => WD.storage.exportFile() },
             { label: 'Datei öffnen (.webdaw, .json) …', action: () => $('fileProj').click() },
             { sep: 1 },
-            { label: 'Als WAV exportieren …', shortcut: 'Strg+E', action: () => WD.exporter.dialog() },
+            { label: 'Als Audio exportieren (WAV, MP3) …', shortcut: 'Strg+E', action: () => WD.exporter.dialog() },
+            { label: 'Stems exportieren (ZIP) …', action: () => WD.exporter.stemsDialog() },
             { label: 'Audiodatei importieren …', shortcut: 'Strg+I', action: () => $('fileAudio').click() },
             { sep: 1 },
             WD.install.menuItem(),
@@ -56,6 +57,9 @@
                 { sep: 1 },
                 { label: 'Audio-Eingang …', icon: 'mic', action: () => D().inputSettings() },
                 { label: 'Stimmgerät …', icon: 'tuner', shortcut: 'Strg+U', action: () => WD.tuner.open() },
+                { label: WD.midi.connected ? 'MIDI-Keyboard: verbunden' : 'MIDI-Keyboard verbinden …', icon: 'keys', action: () => WD.midi.connect() },
+                { sep: 1 },
+                { label: 'Diese Spur exportieren …', icon: 'file', disabled: !t || !t.regions.length, action: () => WD.exporter.trackDialog(t) },
             ];
         },
         Song: () => [
@@ -84,7 +88,10 @@
             ];
         },
         Hilfe: () => [
-            { label: 'Tastaturkürzel', action: () => D().shortcutsDialog() },
+            { label: 'Erste Schritte …', action: () => D().firstStepsDialog() },
+            { label: 'Tastaturkürzel …', action: () => D().shortcutsDialog() },
+            { sep: 1 },
+            { label: 'Klangquellen und Lizenzen …', action: () => D().creditsDialog() },
         ],
     };
 

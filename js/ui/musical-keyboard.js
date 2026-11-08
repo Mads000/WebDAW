@@ -28,6 +28,7 @@
     }
 
     WD.musicalKeyboard = {
+        snapToKey,
         // Rückgabe true: Taste wurde musikalisch verwendet
         keyDown(e) {
             const key = e.key.toLowerCase();

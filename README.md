@@ -21,4 +21,4 @@ Projekte werden im Browser gespeichert (IndexedDB). Wichtige Songs bitte zusätz
 
 ## Tests
 
-`node tests/e2e.mjs`, `node tests/e2e-mouse.mjs` und `node tests/offline.mjs` (Node 22 und Chrome; keine weiteren Abhängigkeiten).
+`node tests/e2e.mjs`, `node tests/e2e-mouse.mjs`, `node tests/features.mjs` und `node tests/offline.mjs` (Node 22 und Chrome; keine weiteren Abhängigkeiten).

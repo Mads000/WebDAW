@@ -28,22 +28,22 @@
         <div id="controlbar">
             <div class="cb-side cb-left">
                 <div class="btn-group">
-                    <button id="btnLibrary" class="tool" data-icon="library" data-tip="Bibliothek (V)"></button>
-                    <button id="btnSmart" class="tool" data-icon="knob" data-tip="Smart Controls (B)"></button>
-                    <button id="btnEditor" class="tool" data-icon="roll" data-tip="Editor (P)"></button>
-                    <button id="btnMixer" class="tool" data-icon="mixer" data-tip="Mixer (X)"></button>
+                    <button id="btnLibrary" class="tool" data-label="Klänge" data-icon="library" data-tip="Bibliothek (V)"></button>
+                    <button id="btnSmart" class="tool" data-label="Regler" data-icon="knob" data-tip="Smart Controls (B)"></button>
+                    <button id="btnEditor" class="tool" data-label="Editor" data-icon="roll" data-tip="Editor (P)"></button>
+                    <button id="btnMixer" class="tool" data-label="Mixer" data-icon="mixer" data-tip="Mixer (X)"></button>
                 </div>
                 <div class="btn-group">
-                    <button id="btnUndo" class="tool" data-icon="undo"></button>
-                    <button id="btnRedo" class="tool" data-icon="redo"></button>
+                    <button id="btnUndo" class="tool" data-label="Zurück" data-icon="undo"></button>
+                    <button id="btnRedo" class="tool" data-label="Vor" data-icon="redo"></button>
                 </div>
                 <div class="btn-group hide-mid">
-                    <button id="btnSplit" class="tool" data-icon="scissors" data-tip="Region am Playhead teilen (Strg+T)"></button>
-                    <button id="btnDup" class="tool" data-icon="copy" data-tip="Region duplizieren (Strg+D)"></button>
-                    <button id="btnDel" class="tool" data-icon="trash" data-tip="Auswahl löschen (Entf)"></button>
+                    <button id="btnSplit" class="tool" data-label="Teilen" data-icon="scissors" data-tip="Region am Playhead teilen (Strg+T)"></button>
+                    <button id="btnDup" class="tool" data-label="Kopie" data-icon="copy" data-tip="Region duplizieren (Strg+D)"></button>
+                    <button id="btnDel" class="tool" data-label="Löschen" data-icon="trash" data-tip="Auswahl löschen (Entf)"></button>
                 </div>
                 <div class="btn-group hide-narrow">
-                    <button id="btnSnap" class="tool" data-icon="magnet" data-tip="Am Raster ausrichten (Strg halten: frei)"></button>
+                    <button id="btnSnap" class="tool" data-label="Raster" data-icon="magnet" data-tip="Am Raster ausrichten (Strg halten: frei)"></button>
                     <select id="gridSel" data-tip="Rasterweite">
                         <option value="auto">Auto</option>
                         <option value="1">1 Takt</option>
@@ -145,6 +145,10 @@
     <script src="js/audio/worklets.js"></script>
     <script src="js/audio/channel.js"></script>
     <script src="js/audio/engine.js"></script>
+    <script src="js/audio/samples/piano.js"></script>
+    <script src="js/audio/samples/bass.js"></script>
+    <script src="js/audio/samples/drums.js"></script>
+    <script src="js/audio/samples.js"></script>
     <script src="js/audio/instruments.js"></script>
     <script src="js/audio/transport.js"></script>
     <script src="js/audio/render.js"></script>
@@ -155,12 +159,14 @@
     <script src="js/project/db.js"></script>
     <script src="js/project/file-format.js"></script>
     <script src="js/project/storage.js"></script>
+    <script src="js/vendor/lame.min.js"></script>
     <script src="js/project/export.js"></script>
     <script src="js/ui/icons.js"></script>
     <script src="js/ui/overlays.js"></script>
     <script src="js/ui/controls.js"></script>
     <script src="js/timeline/view.js"></script>
     <script src="js/timeline/lanes.js"></script>
+    <script src="js/timeline/comping.js"></script>
     <script src="js/timeline/region-ops.js"></script>
     <script src="js/timeline/region-input.js"></script>
     <script src="js/timeline/automation.js"></script>
@@ -179,6 +185,7 @@
     <script src="js/ui/smart-controls.js"></script>
     <script src="js/ui/musical-keyboard.js"></script>
     <script src="js/ui/project-dialogs.js"></script>
+    <script src="js/ui/midi-input.js"></script>
     <script src="js/ui/tuner.js"></script>
     <script src="js/ui/install.js"></script>
     <script src="js/ui/topbar.js"></script>

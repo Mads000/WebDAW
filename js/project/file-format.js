@@ -61,7 +61,12 @@
             clean.vol = WD.clamp(finite(clean.vol, .8), 0, 1);
             clean.pan = WD.clamp(finite(clean.pan, 0), -1, 1);
             clean.arm = false; clean.monitor = false;
-            clean.auto = (Array.isArray(t.auto) ? t.auto : []).filter(a => a && isFinite(a.bar) && isFinite(a.val));
+            const goodPts = list => (Array.isArray(list) ? list : []).filter(a => a && isFinite(a.bar) && isFinite(a.val));
+            clean.auto = goodPts(t.auto);
+            clean.autos = {};
+            ['pan', 'rev', 'lp'].forEach(k => { if (t.autos && t.autos[k]) clean.autos[k] = goodPts(t.autos[k]); });
+            clean.fxRevSize = WD.clamp(finite(clean.fxRevSize, .5), 0, 1);
+            if (!WD.engine.DELAY_DIVS[clean.fxDlyDiv]) clean.fxDlyDiv = '1/8.';
             clean.regions = (Array.isArray(t.regions) ? t.regions : []).map(r => {
                 const nr = M.normalizeRegion(Object.assign({}, r, { name: String(r.name ?? 'Region') }));
                 nr.startBar = Math.max(0, finite(nr.startBar, 0));

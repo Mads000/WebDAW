@@ -43,15 +43,12 @@
             if (r.takes && r.takes.length > 1) {
                 const list = el('span', { class: 'take-list' });
                 r.takes.forEach((tk, i) => list.append(el('button', {
-                    class: i === (r.takeIdx || 0) ? 'on' : '',
-                    onclick: () => {
-                        WD.history.run('Take wählen', () => {
-                            r.takeIdx = i; r.bufId = tk.bufId; r.offset = tk.offset || 0;
-                        });
-                        bus.emit('regions'); bus.emit('audio:edited'); bus.emit('editor:refresh');
-                    },
+                    class: !r.comp && i === (r.takeIdx || 0) ? 'on' : '',
+                    onclick: () => WD.comping.selectTake(r, i),
                 }, `Take ${i + 1}`)));
-                head.append(el('label', { class: 'pane-field' }, 'Takes', list), el('span', { class: 'pane-sep' }));
+                head.append(el('label', { class: 'pane-field' }, r.comp ? 'Comp aus' : 'Takes', list),
+                    el('button', { 'data-tip': 'Alle Takes unter der Region zeigen; Ziehen übernimmt einen Bereich', onclick: () => WD.comping.toggle(r.id) }, WD.view.takesOpen.has(r.id) ? 'Takes einklappen' : 'Takes aufklappen'),
+                    el('span', { class: 'pane-sep' }));
             }
             // Varispeed
             const rateLabel = el('b', { style: { fontVariantNumeric: 'tabular-nums' } });

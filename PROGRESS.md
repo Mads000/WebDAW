@@ -6,8 +6,8 @@ Wird nach jeder Phase aktualisiert.
 
 - **Phase:** alle 9 Phasen abgeschlossen
 - **Starten:** `start-webdaw.bat` oder `index.html` doppelklicken (Chrome oder Edge); online unter https://mads000.github.io/WebDAW/, dort als App installierbar und offline nutzbar
-- **Tests:** `tests/e2e.mjs` 133/133, `tests/e2e-mouse.mjs` 44/44, `tests/offline.mjs` 7/7, `tests/loop.mjs` 16/16
-- **Noch nicht geprüft:** echte Instrumente, echtes Interface und Hören (siehe „Als Nächstes“)
+- **Tests:** `tests/e2e.mjs`, `tests/e2e-mouse.mjs`, `tests/features.mjs`, `tests/offline.mjs`, `tests/loop.mjs`
+- **Noch nicht geprüft:** echte Instrumente, echtes Interface, echtes MIDI-Keyboard und Hören (siehe „Als Nächstes“)
 - **Sicherung:** `_backup_original/` (alle drei Original-HTML-Dateien, schreibgeschützt)
 - **Bericht:** [docs/BERICHT.md](docs/BERICHT.md) · Analyse: [docs/ANALYSE.md](docs/ANALYSE.md) · Musik: [docs/MUSIK.md](docs/MUSIK.md)
 
@@ -45,6 +45,9 @@ Startdatei `start-webdaw.bat`, GitHub-Repository Mads000/WebDAW, GitHub Pages, i
 
 ### Loops für alle Regionen ✅
 Audio-Aufnahmen und MIDI-/Drum-Regionen lassen sich loopen: Loop-Griff oben rechts, Taste L, Kontext- und Bearbeiten-Menü. Wiedergabe, Export, Wellenform, Teilen, Auflösen, Rückgängig und Tempowechsel berücksichtigen den Loop.
+
+### Überarbeitung nach Testbericht ✅
+Letztes Projekt öffnet automatisch, Klick neben Dialoge schließt nichts mehr. Takes aufklappbar mit Comping, gesampelter Flügel, E-Bass und Drumkit (docs/SAMPLES.md). Export einzelner Spuren, Stem-Auswahl als ZIP, MP3. Einfügen überlagert nichts mehr. Raumgröße beim Hall, Notenlänge beim Echo, Automation für Panorama, Hall und Filter, MIDI-Keyboard. Piano Roll mit allen Notennamen und höher, Bibliothek nach Spurtyp gefiltert, „Erste Schritte“, deutsche Klangnamen, beschriftete Werkzeugleiste.
 
 ## Offene Fehler
 
