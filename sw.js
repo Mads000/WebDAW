@@ -4,7 +4,7 @@
 'use strict';
 const CACHE = 'webdaw-app';
 const FIXED = ['./', './index.html', './manifest.webmanifest',
-    './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'];
+    './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './js/vendor/peerjs.min.js'];
 const NET_TIMEOUT = 4000;
 
 // Alle Dateien, die index.html einbindet, werden gleich beim ersten Besuch gespeichert,

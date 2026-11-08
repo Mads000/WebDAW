@@ -12,7 +12,7 @@
     // Kopie der Spur ohne alle Effekte; Lautstärke und Panorama bleiben
     function dryCopy(tr) {
         const c = JSON.parse(JSON.stringify(tr));
-        Object.assign(c, { eqL: 0, eqM: 0, eqH: 0, fxRev: 0, fxDly: 0, fxCmp: 0, dbl: false });
+        Object.assign(c, { eqL: 0, eqM: 0, eqH: 0, fxRev: 0, fxDly: 0, fxCmp: 0, dbl: false, fxPump: 0, fxTune: 0 });
         c.fx = { gate: 0, drive: 0, driveType: 'overdrive', chorus: 0, crush: 0, hp: 0, lp: 0, limit: 0 };
         c.autos = c.autos && c.autos.pan ? { pan: c.autos.pan } : {};
         return c;
@@ -35,6 +35,7 @@
     // useMaster=false: neutral, ohne Master-Klang und Limiter. dry: ohne Effekte. range: {a, b} in Bar-Einheiten.
     async function render(tracks, { useMaster = true, tail = 2.5, dry = false, range = null } = {}) {
         await WD.engine.ensure();
+        await WD.samples.ensureProject();
         const p = WD.project, spb = M.secPerBar();
         const sr = WD.engine.ctx.sampleRate;
         const a = range ? range.a : 0, b = range ? range.b : exportEnd(p);
@@ -58,6 +59,10 @@
             strip.setMuted(false, true);
             if (!scheduleAuto(strip, tr, 'vol', a, b, spb, tr.vol)) strip.fader.gain.value = tr.vol;
             ['pan', 'rev', 'lp'].forEach(key => scheduleAuto(strip, tr, key, a, b, spb, 1));
+            if ((tr.fxPump || 0) > 0 && tr.type !== 'drum') {
+                const dur = M.pumpDur();
+                M.kicks(a, b).forEach(bar => { const t = (bar - a) * spb; events.push({ t, fn: () => strip.pumpAt(t, tr.fxPump, dur) }); });
+            }
 
             tr.regions.forEach(r => {
                 if (tr.type === 'audio') {

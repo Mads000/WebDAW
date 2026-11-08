@@ -18,7 +18,7 @@
         return {
             version: 2, id: uid(), name: name || 'Neues Projekt',
             bpm: 85, timeSig: [4, 4], keyRoot: 'C', keyMode: 'major', keySnap: false,
-            tracks: [], markers: [],
+            tracks: [], markers: [], chords: [],
             cycle: { on: false, a: 0, b: 4 }, punch: false,
             metronome: false, countIn: false,
             master: { vol: 0.8, mode: 'clean' },
@@ -65,7 +65,7 @@
                 id: uid(), type: 'inst', name: 'Spur', color: null, vol: 0.8, pan: 0, mute: false, solo: false,
                 arm: false, monitor: false, inputCh: 'mono1',
                 eqL: 0, eqM: 0, eqH: 0, fxRev: 0, fxDly: 0, fxCmp: 0, dbl: false,
-                fxRevSize: 0.5, fxDlyDiv: '1/8.',
+                fxRevSize: 0.5, fxDlyDiv: '1/8.', fxPump: 0, fxTune: 0,
                 auto: [], autos: {}, autoParam: 'vol', showAuto: false, regions: [],
             };
             const out = Object.assign(base, t);
@@ -194,6 +194,27 @@
             });
             return out;
         },
+
+        // Alle Kicks hörbarer Drum-Spuren im Bereich [a, b) in Bar-Einheiten (für das Pumpen)
+        kicks(a, b) {
+            const out = [];
+            WD.project.tracks.forEach(t => {
+                if (t.type !== 'drum' || !WD.engine.isAudible(t)) return;
+                t.regions.forEach(r => {
+                    const L = r.loopLen || r.lengthBars;
+                    r.notes.forEach(nt => {
+                        if (nt.n !== 0) return;
+                        for (let k = Math.max(0, Math.floor((a - r.startBar - nt.t) / L)); ; k++) {
+                            const abs = r.startBar + k * L + nt.t;
+                            if (abs >= r.startBar + r.lengthBars || abs >= b) break;
+                            if (abs >= a - 1e-9) out.push(abs);
+                        }
+                    });
+                });
+            });
+            return out;
+        },
+        pumpDur: () => Math.min(.3, M.beatLen() * M.secPerBar() * .75),
 
         // Automation: Lautstärke liegt in t.auto, alles andere in t.autos[param]. Werte immer 0…1.
         AUTO: {

@@ -191,9 +191,11 @@
         WD.ui.modal((box, close) => {
             box.append(el('h2', {}, 'Klangquellen und Lizenzen'),
                 el('p', {}, 'Flügel: Salamander Grand Piano von Alexander Holm (CC BY 3.0).'),
-                el('p', {}, 'E-Bass: FluidR3 GM SoundFont von Frank Wen, aufbereitet von Benjamin Gleitzman (CC BY 3.0).'),
-                el('p', {}, 'Drumkit: Virtuosity Drums (CC0). Die Clap ist synthetisch.'),
+                el('p', {}, 'E-Bass, E-Piano, Celesta, Spieluhr: FluidR3 GM SoundFont von Frank Wen, aufbereitet von Benjamin Gleitzman (CC BY 3.0).'),
+                el('p', {}, 'Streicher, Pizzicato, Glockenspiel: VSCO 2 Community Edition von Versilian Studios (CC0).'),
+                el('p', {}, 'Akustik-Kit: Virtuosity Drums (CC0). Trockenes Pop-Kit: Swirly Drums von Karoryfer Samples (CC0). Die Clap und das Tamburin des Pop-Kits sind synthetisch.'),
                 el('p', {}, 'MP3-Export: lamejs, basierend auf LAME (lame.sourceforge.net, LGPL).'),
+                el('p', {}, 'Geräte-Sync: PeerJS (MIT). Der Verbindungsaufbau läuft über den öffentlichen PeerJS-Dienst; der Song geht direkt von Gerät zu Gerät.'),
                 el('div', { class: 'modal-btns' }, el('button', { class: 'primary', onclick: close }, 'Schließen')));
         }, { onEscape: () => { } });
     }

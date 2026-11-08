@@ -138,6 +138,69 @@ class CrushProcessor extends AudioWorkletProcessor {
     }
 }
 registerProcessor('wd-crush', CrushProcessor);
+
+class TuneProcessor extends AudioWorkletProcessor {
+    static get parameterDescriptors() { return [{ name: 'amount', defaultValue: .5, minValue: 0, maxValue: 1, automationRate: 'k-rate' }]; }
+    constructor(o) {
+        super();
+        this.scale = (o.processorOptions && o.processorOptions.scale) || new Array(12).fill(true);
+        this.port.onmessage = e => { this.scale = e.data; };
+        this.N = 2048; this.ring = new Float32Array(this.N); this.pos = 0; this.since = 0;
+        this.M = Math.ceil(sampleRate * .1); this.d = [new Float32Array(this.M), new Float32Array(this.M)]; this.wp = 0;
+        this.W = sampleRate * .03; this.ph = .5; this.ratio = 1; this.want = 1; this.f0 = 0;
+    }
+    // YIN auf halber Abtastrate: genügt für Stimmen und bleibt auch am Handy sparsam
+    detect() {
+        const N = this.N >> 1, x = new Float32Array(N); let e = 0;
+        for (let i = 0; i < N; i++) { const v = this.ring[(this.pos + i * 2) % this.N]; x[i] = v; e += v * v; }
+        if (e / N < 2e-4) return 0;
+        const sr = sampleRate / 2, lo = Math.floor(sr / 900), hi = Math.floor(sr / 75), W = N - hi;
+        const df = new Float32Array(hi + 2); let sum = 0, tau = -1;
+        for (let t = 1; t <= hi + 1; t++) {
+            let s = 0;
+            for (let i = 0; i < W; i++) { const v = x[i] - x[i + t]; s += v * v; }
+            sum += s; df[t] = s * t / (sum || 1);
+        }
+        for (let t = lo; t <= hi; t++) if (df[t] < .18 && df[t] <= df[t + 1]) { tau = t; break; }
+        if (tau < 0) return 0;
+        const a = df[tau - 1], b = df[tau], c = df[tau + 1];
+        return sr / (tau + (a - c) / (2 * (a - 2 * b + c) || 1));
+    }
+    retarget(amount) {
+        const f = this.detect();
+        if (!f) { this.want = 1; return; }
+        const midi = 69 + 12 * Math.log2(f / 440);
+        let best = midi, dist = 99;
+        for (let k = Math.floor(midi) - 2; k <= Math.floor(midi) + 3; k++) {
+            if (!this.scale[((k % 12) + 12) % 12]) continue;
+            const d = Math.abs(k - midi);
+            if (d < dist) { dist = d; best = k; }
+        }
+        this.want = Math.pow(2, (best - midi) * Math.min(1, amount * 2) / 12);
+    }
+    process(inputs, outputs, parameters) {
+        const inp = inputs[0], out = outputs[0], n = out[0].length, amount = parameters.amount[0];
+        const L = inp[0], R = inp[1] || inp[0];
+        if (!L) { out.forEach(c => c.fill(0)); return true; }
+        for (let i = 0; i < n; i++) { this.ring[this.pos] = L[i]; this.pos = (this.pos + 1) % this.N; }
+        this.since += n;
+        if (this.since >= 1024) { this.since = 0; this.retarget(amount); }
+        const tau = .002 + (1 - amount) * (1 - amount) * .2, coef = 1 - Math.exp(-n / (sampleRate * tau));
+        this.ratio += (this.want - this.ratio) * coef;
+        const M = this.M, W = this.W, rate = (1 - this.ratio) / W, still = Math.abs(this.ratio - 1) < .0008;
+        const read = (d, delay) => { const p = this.wp - delay + M * 2, a = Math.floor(p), f = p - a; return d[a % M] * (1 - f) + d[(a + 1) % M] * f; };
+        for (let i = 0; i < n; i++) {
+            this.d[0][this.wp] = L[i]; this.d[1][this.wp] = R[i];
+            // Ohne Korrektur gleitet der Lesekopf auf die Mitte, damit nur eine Verzögerung klingt und nichts kammfiltert
+            if (still) this.ph += (.5 - this.ph) * .002; else this.ph = (this.ph + rate + 1) % 1;
+            const p2 = (this.ph + .5) % 1, g1 = Math.sin(Math.PI * this.ph) ** 2, g2 = 1 - g1;
+            for (let c = 0; c < 2 && c < out.length; c++) out[c][i] = read(this.d[c], 2 + this.ph * W) * g1 + read(this.d[c], 2 + p2 * W) * g2;
+            this.wp = (this.wp + 1) % M;
+        }
+        return true;
+    }
+}
+registerProcessor('wd-tune', TuneProcessor);
 `;
     let url = null;
     WD.worklets = {

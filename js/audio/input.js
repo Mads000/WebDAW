@@ -30,6 +30,7 @@
         if (opening) return opening;
         opening = (async () => {
             await WD.engine.ensure();
+            if (navigator.audioSession) navigator.audioSession.type = 'play-and-record';
             const ctx = WD.engine.ctx;
             const audio = {
                 echoCancellation: false, noiseSuppression: false, autoGainControl: false,
@@ -69,6 +70,7 @@
         if (stream) stream.getTracks().forEach(t => { t.onended = null; t.stop(); });
         [source, trim, analyser, splitter].forEach(n => { if (n) { try { n.disconnect(); } catch { /* */ } } });
         stream = source = trim = analyser = splitter = null;
+        if (navigator.audioSession) navigator.audioSession.type = WD.phone && WD.phone.active ? 'playback' : 'auto';
         const fill = $('inMeter').firstElementChild;
         if (fill) WD.meters.setH(fill, 0);
         bus.emit('input:changed');

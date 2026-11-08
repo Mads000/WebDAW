@@ -63,5 +63,5 @@
     // Beim allerersten Start ein Wegweiser, der nichts blockiert
     let firstRun = false;
     try { firstRun = !localStorage.getItem('webdaw_welcomed'); localStorage.setItem('webdaw_welcomed', '1'); } catch { /* nur Komfort */ }
-    if (firstRun) WD.ui.toast('Willkommen! Neu hier? Die „Erste Schritte“ führen dich zur ersten Aufnahme.', { ms: 15000, action: { label: 'Erste Schritte', fn: () => WD.projectDialogs.firstStepsDialog() } });
+    if (firstRun && !WD.phone.active) WD.ui.toast('Willkommen! Neu hier? Die „Erste Schritte“ führen dich zur ersten Aufnahme.', { ms: 15000, action: { label: 'Erste Schritte', fn: () => WD.projectDialogs.firstStepsDialog() } });
 })();

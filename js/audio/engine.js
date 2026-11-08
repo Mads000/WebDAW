@@ -119,7 +119,7 @@
         // Darf ohne await aufgerufen werden; muss einmal aus einer Benutzer-Geste heraus laufen.
         ensure() {
             if (!readyPromise) readyPromise = init();
-            if (ctx && ctx.state === 'suspended') ctx.resume();
+            if (ctx && ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume(); // iOS meldet nach Anrufen 'interrupted'
             return readyPromise;
         },
         get ctx() { return ctx; },

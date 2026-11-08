@@ -250,6 +250,8 @@
                 { label: n > 1 ? `${n} Regionen loopen bis Songende` : 'Loopen bis Songende', icon: 'loop', shortcut: 'L', action: () => Ops.loopToEnd() },
                 { label: 'Loop entfernen', disabled: !M.selRegions().some(x => M.isLooped(x.region)), action: () => Ops.removeLoop() },
                 { label: 'Loop auflösen (einzeln bearbeitbar)', disabled: !M.isLooped(region), action: () => Ops.unloop(track, region) },
+                ...(track.type === 'audio' ? WD.regionFx.menuItems(region) : []),
+                { sep: 1 },
                 {
                     label: 'Cycle auf diese Region', icon: 'cycle', action: () => {
                         WD.history.run('Cycle-Bereich', () => {

@@ -102,6 +102,14 @@
                 });
             });
         });
+        schedulePump(a, b);
+    }
+
+    function schedulePump(a, b) {
+        const list = WD.project.tracks.filter(t => (t.fxPump || 0) > 0 && t.type !== 'drum');
+        if (!list.length) return;
+        const dur = M.pumpDur();
+        M.kicks(a, b).forEach(bar => list.forEach(t => WD.engine.strip(t).pumpAt(timeOf(bar), t.fxPump, dur)));
     }
 
     function startRegion(tr, r, when, skipSec, curBar) {
@@ -206,6 +214,7 @@
 
         async play() {
             await WD.engine.ensure();
+            await WD.samples.ensureProject(); // Gesampelte Klänge sollen schon beim ersten Ton da sein
             if (playing) return;
             const ctx = WD.engine.ctx;
             playing = true;

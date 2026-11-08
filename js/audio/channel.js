@@ -21,6 +21,17 @@
         return c;
     }
 
+    // Töne der eingestellten Tonart für die Tonhöhenkorrektur
+    const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const scaleSig = () => WD.project.keyRoot + WD.project.keyMode;
+    function scaleOf() {
+        const root = Math.max(0, NOTES.indexOf(WD.project.keyRoot));
+        const steps = WD.project.keyMode === 'minor' ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11];
+        const out = new Array(12).fill(false);
+        steps.forEach(s => { out[(root + s) % 12] = true; });
+        return out;
+    }
+
     function createStrip(ctx, track, dests) {
         const live = {};
         const input = ctx.createGain();
@@ -28,7 +39,8 @@
         const muteG = ctx.createGain();
         const pan = ctx.createStereoPanner();
         const revSend = ctx.createGain(), dlySend = ctx.createGain();
-        fader.connect(muteG); muteG.connect(pan);
+        const pump = ctx.createGain(); // Sidechain-Effekt: wird zu jeder Kick kurz abgesenkt
+        fader.connect(pump); pump.connect(muteG); muteG.connect(pan);
         pan.connect(dests.output);
         // Hall: Send → Überblendung zwischen zwei Raumgrößen. Echo: Send → Bus der gewählten Notenlänge.
         const revA = ctx.createGain(), revB = ctx.createGain();
@@ -71,6 +83,10 @@
                 const n = new AudioWorkletNode(ctx, 'wd-gate', { outputChannelCount: [2] });
                 return { in: n, out: n, node: n };
             },
+            tune() {
+                const n = new AudioWorkletNode(ctx, 'wd-tune', { outputChannelCount: [2], processorOptions: { scale: scaleOf() } });
+                return { in: n, out: n, node: n, sig: scaleSig() };
+            },
             hp() { const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.Q.value = 0.7; return { in: f, out: f, node: f }; },
             lp() { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 0.7; return { in: f, out: f, node: f }; },
             eqL() { const f = ctx.createBiquadFilter(); f.type = 'lowshelf'; f.frequency.value = 220; return { in: f, out: f, node: f }; },
@@ -112,7 +128,7 @@
                 return { in: n, out: n, node: n };
             },
         };
-        const ORDER = ['dbl', 'gate', 'hp', 'lp', 'eqL', 'eqM', 'eqH', 'cmp', 'drive', 'crush', 'chorus', 'limit'];
+        const ORDER = ['dbl', 'gate', 'tune', 'hp', 'lp', 'eqL', 'eqM', 'eqH', 'cmp', 'drive', 'crush', 'chorus', 'limit'];
 
         const isActive = (t, key) => {
             const fx = t.fx || {};
@@ -120,6 +136,7 @@
                 case 'dbl': return !!t.dbl;
                 case 'eqL': case 'eqM': case 'eqH': return !!t[key];
                 case 'cmp': return (t.fxCmp || 0) > 0;
+                case 'tune': return (t.fxTune || 0) > 0;
                 case 'lp': return (fx.lp || 0) > 0 || hasAuto(t, 'lp');
                 default: return (fx[key] || 0) > 0;
             }
@@ -158,6 +175,10 @@
                 blocks.cmp.node.threshold.value = -(t.fxCmp || 0) * 35;
                 blocks.cmp.node.ratio.value = 1 + (t.fxCmp || 0) * 9;
             }
+            if (blocks.tune) {
+                blocks.tune.node.parameters.get('amount').value = t.fxTune || 0;
+                if (blocks.tune.sig !== scaleSig()) { blocks.tune.sig = scaleSig(); blocks.tune.node.port.postMessage(scaleOf()); }
+            }
             if (blocks.gate) blocks.gate.node.parameters.get('threshold').value = -70 + fx.gate * 50;
             if (blocks.limit) blocks.limit.node.parameters.get('ceiling').value = -fx.limit * 12;
             if (blocks.crush) blocks.crush.node.parameters.get('amount').value = fx.crush;
@@ -188,6 +209,12 @@
 
         return {
             input, fader, muteG, pan, live, update, autoParam,
+            pumpAt(t, amount, dur) {
+                const low = 1 - amount * .9, p = pump.gain;
+                p.setTargetAtTime(low, t, .003);
+                p.setValueAtTime(low, t + .015);
+                p.linearRampToValueAtTime(1, t + .015 + dur);
+            },
             setMuted(on, immediate) {
                 if (immediate) muteG.gain.value = on ? 0 : 1;
                 else muteG.gain.setTargetAtTime(on ? 0 : 1, ctx.currentTime, 0.006);

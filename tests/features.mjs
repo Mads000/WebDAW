@@ -78,7 +78,9 @@ check('Region zeigt „Comp“', /Comp/.test(await E(`document.querySelector('.r
 await page.screenshot(join(root, 'docs/screenshots/neu/24-comp-fertig.png'));
 
 console.log('\n=== Samples ===');
-const smp = await E(`(async()=>{ h.fresh(); const out={piano:WD.samples.count('piano'),bass:WD.samples.count('bass'),drums:WD.samples.count('drums')};
+const lazy = await E(`({strings:WD.samples.count('strings'),tags:[...document.scripts].filter(x=>x.src.includes('audio/samples/')).length,global:Object.keys(WD.sampleData||{}).length})`);
+check('Samples werden nicht beim Start geladen', lazy.strings === 0 && lazy.tags === 0 && lazy.global === 0, JSON.stringify(lazy));
+const smp = await E(`(async()=>{ h.fresh(); await Promise.all(['piano','bass','drums'].map(WD.samples.ensure)); const out={piano:WD.samples.count('piano'),bass:WD.samples.count('bass'),drums:WD.samples.count('drums')};
   const render=async(tr)=>WD.render.render([tr],{useMaster:false,tail:.5});
   const pt=WD.model.addTrack('inst','P',{inst:'Sampled Grand',regions:[WD.model.normalizeRegion({startBar:0,lengthBars:1,notes:[{t:0,n:69,d:.5,v:1}]})]});
   const b=await render(pt); out.pianoRms=h.band(b,.05,.5); out.pianoF=h.pitch(b,.1,300,1000); out.pianoPeak=Math.max(...b.getChannelData(0).subarray(0,20000).map(Math.abs));
@@ -89,7 +91,7 @@ const smp = await E(`(async()=>{ h.fresh(); const out={piano:WD.samples.count('p
   const bt=WD.model.addTrack('inst','B',{inst:'Sampled Bass',regions:[WD.model.normalizeRegion({startBar:0,lengthBars:1,notes:[{t:0,n:40,d:1,v:1}]})]});
   const b3=await render(bt); out.bassRms=h.band(b3,.05,.8);
   return out; })()`);
-check('Alle Sample-Sets geladen', smp.piano === 15 && smp.bass === 7 && smp.drums === 7, JSON.stringify([smp.piano, smp.bass, smp.drums]));
+check('Alle Sample-Sets geladen', smp.piano === 30 && smp.bass === 7 && smp.drums === 7, JSON.stringify([smp.piano, smp.bass, smp.drums]));
 check('Flügel klingt auf der richtigen Tonhöhe', smp.pianoRms > .03 && Math.abs(smp.pianoF - 440) < 8, `${smp.pianoRms.toFixed(3)} / ${smp.pianoF} Hz`);
 check('Flügel setzt ohne Verzögerung ein', smp.onsetMs < 8, smp.onsetMs.toFixed(1) + ' ms');
 check('Flügel übersteuert nicht', smp.pianoPeak < 1, smp.pianoPeak.toFixed(2));
@@ -253,6 +255,90 @@ await sleep(120);
 const afterPlay = await E(`({p:WD.transport.playing,c:WD.transport.current(),d:WD.timeline.dragPos})`);
 check('Ziehen während der Wiedergabe springt beim Loslassen', afterPlay.p && afterPlay.c >= 3 && afterPlay.c < 3.3 && afterPlay.d === null, JSON.stringify(afterPlay));
 await E(`WD.transport.stop()`);
+
+console.log('\n=== Neue Klänge ===');
+const nk = await E(`(async()=>{ h.fresh(); const out={};
+  const mk=(inst,n,d,v=1)=>WD.model.addTrack('inst','X',{inst,regions:[WD.model.normalizeRegion({startBar:0,lengthBars:4,notes:[{t:0,n,d,v}]})]});
+  const r=t=>WD.render.render([t],{useMaster:false,tail:.2});
+  for (const [i,n] of [['Sampled EP',60],['Sampled Pizz',60],['Sampled Glock',84],['Sampled Celesta',72],['Sampled Music Box',72],['Sampled Strings',60]]) { const b=await r(mk(i,n,.2)); out[i]=h.band(b,.03,.25); }
+  out.autoLoaded=WD.samples.count('strings');
+  const spb=WD.model.secPerBar();
+  const held=await r(mk('Sampled Strings',60,6/spb)); out.heldStart=h.band(held,1,2); out.heldLate=h.band(held,5,5.9); out.heldAfter=h.band(held,6.8,7.2);
+  const soft=await r(mk('Sampled Grand',60,.25,.3)), hard=await r(mk('Sampled Grand',60,.25,1));
+  const hf=b=>{const d=b.getChannelData(0);let e=0,s=0;for(let i=1;i<24000&&i<d.length;i++){e+=(d[i]-d[i-1])**2;s+=d[i]*d[i]}return e/(s||1)};
+  out.softHf=hf(soft); out.hardHf=hf(hard);
+  const pop=WD.model.addTrack('drum','D',{kit:'Sampled Pop Kit',regions:[WD.model.normalizeRegion({startBar:0,lengthBars:1,notes:[0,1,2,3,4,5,6,7].map((n,i)=>({t:i/8,n,d:.1,v:1}))})]});
+  const pb=await r(pop); out.pop=[...Array(8).keys()].map(i=>h.band(pb,i/8*spb+.002,i/8*spb+.1));
+  return out})()`);
+for (const n of ['Sampled EP', 'Sampled Pizz', 'Sampled Glock', 'Sampled Celesta', 'Sampled Music Box', 'Sampled Strings']) check(n + ' klingt', nk[n] > .01, nk[n]);
+check('Klänge laden beim Export von selbst', nk.autoLoaded > 3, nk.autoLoaded);
+check('Gehaltene Streicher klingen über das Sample-Ende hinaus', nk.heldLate > nk.heldStart * .4, JSON.stringify([nk.heldStart, nk.heldLate]));
+check('Streicher verstummen nach dem Loslassen', nk.heldAfter < nk.heldLate * .05, nk.heldAfter);
+check('Anschlagstufen: laut klingt heller', nk.hardHf > nk.softHf * 1.3, JSON.stringify([nk.softHf, nk.hardHf]));
+check('Trockenes Pop-Kit: alle Lanes klingen', nk.pop.every(v => v > .004), JSON.stringify(nk.pop));
+
+console.log('\n=== Kreativ-Werkzeuge ===');
+await E(`window.sine=(f,sec,sr=48000)=>{const b=new AudioBuffer({length:sec*sr,numberOfChannels:1,sampleRate:sr});const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=.5*Math.sin(2*Math.PI*f*i/sr);return b};
+window.zc=(b,a,c)=>{const d=b.getChannelData(0),sr=b.sampleRate;let n=0;for(let i=Math.floor(a*sr);i<c*sr;i++)if(d[i-1]<=0&&d[i]>0)n++;return n/(c-a)};
+window.audioTrack=(f,sec)=>{const id=WD.audioStore.put(sine(f,sec));const spb=WD.model.secPerBar();const r=WD.model.normalizeRegion({startBar:0,lengthBars:sec/spb,bufId:id,name:'Ton',notes:[]});const t=WD.model.addTrack('audio','A',{regions:[r]});return{t,r:t.regions[0]}};0`);
+const sm = await E(`(async()=>{ h.fresh(); const {r}=audioTrack(440,2); const t=WD.sampler.fromRegion(r);
+  t.regions.push(WD.model.normalizeRegion({startBar:0,lengthBars:1,notes:[{t:0,n:81,d:.5,v:1}]}));
+  const b=await WD.render.render([t],{useMaster:false,tail:.2});
+  const ids=[...WD.fileFormat.collectBufferIds(WD.project)];
+  const back=await WD.fileFormat.read(WD.fileFormat.write(WD.project));
+  return{root:t.sampler.root,f:zc(b,.1,.4),rms:h.band(b,.05,.4),kept:ids.includes(t.sampler.bufId),restored:back.buffers.has(t.sampler.bufId)&&!!back.project.tracks[1].sampler}})()`);
+check('Sampler erkennt den Grundton', sm.root === 69, sm.root);
+check('Sampler spielt transponiert (A5)', Math.abs(sm.f - 880) < 8, sm.f);
+check('Sampler bleibt in der Projektdatei', sm.kept && sm.restored, JSON.stringify(sm));
+
+const pu = await E(`(async()=>{ h.fresh(); const spb=WD.model.secPerBar();
+  const inst=WD.model.addTrack('inst','S',{inst:'Organ',regions:[WD.model.normalizeRegion({startBar:0,lengthBars:2,notes:[{t:0,n:60,d:2,v:1}]})]});
+  WD.model.addTrack('drum','K',{kit:'Rock Kit',regions:[WD.model.normalizeRegion({startBar:0,lengthBars:2,notes:[0,.5,1,1.5].map(t=>({t,n:0,d:.1,v:1}))})]});
+  const off=await WD.render.render([inst],{useMaster:false,tail:.1}); inst.fxPump=1; const on=await WD.render.render([inst],{useMaster:false,tail:.1});
+  const at=.5*spb; return{off:h.band(off,at+.02,at+.05),on:h.band(on,at+.02,at+.05),rec:h.band(on,at+.42,at+.46),offRec:h.band(off,at+.42,at+.46)} })()`);
+check('Pumpen senkt bei der Kick deutlich ab', pu.on < pu.off * .35, JSON.stringify(pu));
+check('Pumpen erholt sich vor der nächsten Kick', pu.rec > pu.offRec * .8, JSON.stringify(pu));
+
+const tu = await E(`(async()=>{ h.fresh(); WD.project.keyRoot='C'; WD.project.keyMode='major'; const {t}=audioTrack(450,2);
+  t.fxTune=0; const off=await WD.render.render([t],{useMaster:false,tail:.1});
+  t.fxTune=1; const on=await WD.render.render([t],{useMaster:false,tail:.1});
+  t.fxTune=.2; const nat=await WD.render.render([t],{useMaster:false,tail:.1});
+  const {t:t2}=audioTrack(440,2); t2.fxTune=1; const stay=await WD.render.render([t2],{useMaster:false,tail:.1});
+  return{off:h.pitch(off,1,300,1000),on:h.pitch(on,1,300,1000),nat:h.pitch(nat,1,300,1000),stay:h.pitch(stay,1,300,1000),stayRms:h.band(stay,1,1.8),onRms:h.band(on,1,1.8)} })()`);
+check('Ohne Korrektur bleibt der Ton (450 Hz)', Math.abs(tu.off - 450) < 2, tu.off);
+check('Auto-Tune zieht 450 Hz auf A4', Math.abs(tu.on - 440) < 2.5, tu.on);
+check('Natürliche Einstellung korrigiert nur teilweise', tu.nat > tu.on + 2 && tu.nat < tu.off - 1, tu.nat);
+check('Sauberer Ton bleibt unverändert und kammfiltert nicht', Math.abs(tu.stay - 440) < 1.5 && tu.stayRms > .27, JSON.stringify([tu.stay, tu.stayRms]));
+
+const ch = await E(`(()=>{ h.fresh(); const P=WD.chords.parseChord; const out={am:P('Am').pc,fis:P('F#m7').pc,h:P('H').pc,bb:P('Bb').pc,bad:P('xyz')};
+  const {chords}=WD.chords.parseLine('C G Am F',1); WD.chords.apply(chords);
+  const bass=()=>WD.project.tracks.find(t=>t.chordRole==='bass'), keys=()=>WD.project.tracks.find(t=>t.chordRole==='keys');
+  out.bassFirst=bass().regions[0].notes[0].n; out.len=keys().regions[0].lengthBars; out.keysAm=keys().regions[0].notes.filter(n=>n.t===2).map(n=>n.n%12).sort((a,b)=>a-b);
+  bass().regions.push(WD.model.normalizeRegion({startBar:8,lengthBars:1,notes:[],name:'Eigen'}));
+  WD.chords.apply(WD.chords.parseLine('D - G',1).chords);
+  out.after=bass().regions.find(r=>r.fromChords).notes[0].n; out.own=bass().regions.some(r=>r.name==='Eigen'); out.tracks=WD.project.tracks.length; out.held=WD.project.chords[0].len;
+  return out})()`);
+check('Akkorde werden erkannt (auch H und B)', ch.am === 9 && ch.fis === 6 && ch.h === 11 && ch.bb === 10 && ch.bad === null, JSON.stringify(ch));
+check('Bass und Keys folgen den Akkorden', ch.bassFirst === 36 && ch.len === 4 && ch.keysAm.join() === '0,4,9', JSON.stringify(ch));
+check('Änderung baut neu auf, eigene Regionen bleiben', ch.after === 38 && ch.own && ch.tracks === 2 && ch.held === 2, JSON.stringify(ch));
+await sleep(120);
+check('Akkord-Zeile ist sichtbar', await E(`!document.getElementById('chordRow').hidden&&document.querySelectorAll('.chord-pill').length===2`));
+
+const rf = await E(`(async()=>{ h.fresh(); const out={}; let {t,r}=audioTrack(440,1);
+  const orig=r.bufId, d0=WD.audioStore.get(orig).getChannelData(0).slice();
+  WD.regionFx.reverse(r); const d1=WD.audioStore.get(r.bufId).getChannelData(0); out.rev=Math.abs(d1[1000]-d0[d0.length-1001]); out.len=d1.length; out.changed=r.bufId!==orig;
+  WD.history.undo(); const t1=WD.project.tracks[0], r1=t1.regions[0]; out.undo=r1.bufId===orig;
+  WD.regionFx.shift(r1,12); let b=await WD.render.render([t1],{useMaster:false,tail:.1}); out.up=zc(b,.2,.8); out.upRms=h.band(b,.2,.8);
+  h.fresh(); ({t,r}=audioTrack(440,1)); const lb=r.lengthBars; WD.regionFx.tape(r,.5); b=await WD.render.render([t],{useMaster:false,tail:.1}); out.half=zc(b,.2,1.6); out.halfLen=r.lengthBars/lb;
+  return out})()`);
+check('Rückwärts dreht die Audiodaten um', rf.rev < 1e-6 && rf.len === 48000 && rf.changed, JSON.stringify(rf));
+check('Rückgängig stellt das Original her', rf.undo === true, JSON.stringify(rf));
+check('Oktave höher: 880 Hz bei gleicher Länge', Math.abs(rf.up - 880) < 10 && rf.upRms > .15, JSON.stringify(rf));
+check('Halbes Tempo: 220 Hz, doppelte Länge', Math.abs(rf.half - 220) < 3 && Math.abs(rf.halfLen - 2) < 1e-6, JSON.stringify(rf));
+await E(`(()=>{h.fresh();const {t}=audioTrack(440,1);WD.view.selTrackId=t.id;WD.bottom.show('smart')})()`); await sleep(150);
+const sc = await E(`document.getElementById('bottomBody').textContent`);
+check('Smart Controls zeigen Pumpen und Tonkorrektur', /Pumpen/.test(sc) && /Tonkorrektur/.test(sc));
+await E(`WD.bottom.hide()`);
 
 console.log('\n=== MIDI ===');
 const midi = await E(`(async()=>{h.fresh();const t=WD.model.addTrack('inst','I',{inst:'Sampled Grand'});WD.view.selTrackId=t.id;

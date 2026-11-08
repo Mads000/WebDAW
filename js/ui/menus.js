@@ -23,6 +23,9 @@
             { label: 'Stems exportieren (ZIP) …', action: () => WD.exporter.stemsDialog() },
             { label: 'Audiodatei importieren …', shortcut: 'Strg+I', action: () => $('fileAudio').click() },
             { sep: 1 },
+            { label: 'Von anderem Gerät empfangen …', action: () => WD.sync.receiveDialog() },
+            { label: 'An anderes Gerät senden …', action: () => WD.sync.sendDialog() },
+            { sep: 1 },
             WD.install.menuItem(),
         ],
         Bearbeiten: () => {
@@ -63,6 +66,8 @@
             ];
         },
         Song: () => [
+            { label: 'Akkord-Spur …', action: () => WD.chords.dialog() },
+            { sep: 1 },
             ...WD.templates.names().map(n => ({ label: 'Vorlage: ' + n, action: () => WD.templates.create(n) })),
             { label: 'Song-Form auf aktuelles Projekt anwenden', action: () => WD.templates.applySongForm() },
             { sep: 1 },
@@ -79,6 +84,7 @@
                 { label: 'Reinzoomen', shortcut: '+', action: () => WD.timeline.zoomBy(1.25) },
                 { label: 'Rauszoomen', shortcut: '−', action: () => WD.timeline.zoomBy(.8) },
                 { label: 'Song einpassen', shortcut: '0', action: () => WD.timeline.zoomToFit() },
+                { label: 'Handy-Ansicht', action: () => WD.phone.setMode('phone') },
                 { label: 'Spuren niedriger', action: () => WD.timeline.setRowHeight(v.rowH - 12) },
                 { label: 'Spuren höher', action: () => WD.timeline.setRowHeight(v.rowH + 12) },
                 { sep: 1 },

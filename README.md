@@ -22,3 +22,9 @@ Projekte werden im Browser gespeichert (IndexedDB). Wichtige Songs bitte zusätz
 ## Tests
 
 `node tests/e2e.mjs`, `node tests/e2e-mouse.mjs`, `node tests/features.mjs` und `node tests/offline.mjs` (Node 22 und Chrome; keine weiteren Abhängigkeiten).
+
+## Handy und Sync
+
+Auf dem iPhone öffnet sich automatisch die kompakte Ansicht zum Festhalten von Ideen. Am besten über Safari „Zum Home-Bildschirm“ hinzufügen, sonst kann iOS die Songs nach einigen Tagen ohne Nutzung löschen.
+
+Song übertragen: am Handy „An PC“ tippen, am PC unter Ablage „Von anderem Gerät empfangen“ den Code eingeben. Beide Geräte müssen im selben WLAN sein; der Song geht direkt von Gerät zu Gerät und wird als neues Projekt gespeichert.

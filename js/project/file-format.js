@@ -10,10 +10,13 @@
 
     function collectBufferIds(project) {
         const ids = new Set();
-        project.tracks.forEach(t => t.regions.forEach(r => {
-            if (r.bufId) ids.add(r.bufId);
-            (r.takes || []).forEach(k => ids.add(k.bufId));
-        }));
+        project.tracks.forEach(t => {
+            if (t.sampler && t.sampler.bufId) ids.add(t.sampler.bufId);
+            t.regions.forEach(r => {
+                if (r.bufId) ids.add(r.bufId);
+                (r.takes || []).forEach(k => ids.add(k.bufId));
+            });
+        });
         return ids;
     }
 
@@ -55,6 +58,7 @@
                 lengthBars: Math.max(.01, finite(m.lengthBars, 4)), color: typeof m.color === 'string' ? m.color : undefined,
             })),
         });
+        out.chords = (Array.isArray(p.chords) ? p.chords : []).filter(c => c && isFinite(c.bar) && isFinite(c.len) && isFinite(c.pc) && typeof c.name === 'string');
         out.tracks = p.tracks.map((t, i) => {
             if (!t || !['drum', 'inst', 'audio'].includes(t.type)) throw new ProjectFileError(`Spur ${i + 1} hat einen unbekannten Typ.`);
             const clean = M.normalizeTrack(Object.assign({}, t, { name: String(t.name ?? 'Spur') }));
@@ -66,6 +70,9 @@
             clean.autos = {};
             ['pan', 'rev', 'lp'].forEach(k => { if (t.autos && t.autos[k]) clean.autos[k] = goodPts(t.autos[k]); });
             clean.fxRevSize = WD.clamp(finite(clean.fxRevSize, .5), 0, 1);
+            clean.fxPump = WD.clamp(finite(clean.fxPump, 0), 0, 1);
+            clean.fxTune = WD.clamp(finite(clean.fxTune, 0), 0, 1);
+            if (t.sampler && !(typeof t.sampler.bufId === 'string' && isFinite(t.sampler.start) && isFinite(t.sampler.end) && isFinite(t.sampler.root))) delete clean.sampler;
             if (!WD.engine.DELAY_DIVS[clean.fxDlyDiv]) clean.fxDlyDiv = '1/8.';
             clean.regions = (Array.isArray(t.regions) ? t.regions : []).map(r => {
                 const nr = M.normalizeRegion(Object.assign({}, r, { name: String(r.name ?? 'Region') }));

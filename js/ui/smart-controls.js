@@ -62,6 +62,7 @@
         });
 
         return el('div', { class: 'fx-chain' },
+            t.type === 'audio' ? card('Tonkorrektur', t.fxTune > 0, kn('Stärke', () => t.fxTune || 0, v => { t.fxTune = v; })) : null,
             card('Doubler', t.dbl, el('label', { class: 'pane-field' }, dbl, 'an')),
             card('Noise Gate', t.fx.gate > 0, kn('Schwelle', () => t.fx.gate, v => { t.fx.gate = v; })),
             card('Filter', t.fx.hp > 0 || t.fx.lp > 0, el('div', { class: 'fx-card-row' },
@@ -100,6 +101,8 @@
             }));
         });
         knobs.append(K.knob({ label: 'Panorama', min: -1, max: 1, def: 0, historyLabel: 'Panorama', fmt: v => Math.abs(v) < .02 ? 'Mitte' : (v < 0 ? 'L ' : 'R ') + Math.round(Math.abs(v) * 100), get: () => t.pan || 0, set: v => { t.pan = v; } }));
+
+        if (t.type !== 'drum') knobs.append(K.knob({ label: 'Pumpen', tip: 'Duckt die Spur bei jeder Kick', min: 0, max: 1, def: 0, fmt: pct, historyLabel: 'Pumpen', get: () => t.fxPump || 0, set: v => { t.fxPump = v; } }));
 
         const head = el('div', { class: 'pane-head' },
             el('span', { class: 'pane-title' }, t.name),
