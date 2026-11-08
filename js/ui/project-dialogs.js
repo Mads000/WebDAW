@@ -152,7 +152,7 @@
     }
 
     const SHORTCUTS = [
-        ['Wiedergabe', [['Leertaste', 'Start / Stop (zurück zum Startpunkt)'], ['Enter', 'Pause an aktueller Stelle'], ['Pos1', 'Zum Anfang'], ['R', 'Aufnahme'], ['C', 'Cycle'], ['N', 'Metronom'], ['← →', 'Einen Takt zurück / vor']]],
+        ['Wiedergabe', [['Leertaste', 'Start / Stop (zurück zum Startpunkt)'], ['Enter', 'Pause an aktueller Stelle'], ['Pos1', 'Zum Anfang'], ['R', 'Aufnahme'], ['C', 'Cycle'], ['N', 'Metronom'], ['← →', 'Einen Takt zurück / vor'], ['Umschalt+← →', 'Eine Rasterlinie zurück / vor'], ['Strg+← →', '10 Millisekunden zurück / vor'], ['Playhead im Lineal ziehen', 'Position verschieben (Strg: ohne Raster)'], ['Doppelklick auf die Positionsanzeige', 'Position eintippen']]],
         ['Bearbeiten', [['Strg+Z / Strg+Y', 'Rückgängig / Wiederholen'], ['Strg+C / X / V', 'Kopieren / Ausschneiden / Einfügen'], ['Strg+D', 'Duplizieren'], ['Strg+T', 'Am Playhead teilen'], ['L', 'Region loopen bis Songende / Loop entfernen'], ['Ecke oben rechts ziehen', 'Region loopen'], ['Entf', 'Löschen'], ['Strg+A', 'Alles auswählen'], ['Alt+Ziehen', 'Region kopieren'], ['Strg halten', 'Raster beim Ziehen aus']]],
         ['Ansicht', [['V', 'Bibliothek'], ['B', 'Smart Controls'], ['P', 'Editor'], ['X', 'Mixer'], ['+ / −', 'Zoom'], ['0', 'Song einpassen'], ['Strg+Mausrad', 'Zoom'], ['Alt+Mausrad', 'Spurhöhe']]],
         ['Spur', [['M', 'Mute'], ['Umschalt+S', 'Solo'], ['A W S E D F T G Z H U J K', 'Noten spielen'], ['A S D F G H J K', 'Drums spielen'], ['1–7', 'Akkorde der Tonart'], [', / .', 'Oktave']]],

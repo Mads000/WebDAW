@@ -21,7 +21,13 @@
 
     const V = WD.timeline = {
         headW, gridStep,
+        dragPos: null, // Während der Wiedergabe gezogene Position; der Sprung folgt erst beim Loslassen
         barX: bar => bar * WD.view.ppb,
+        // Holt eine Position in den sichtbaren Bereich
+        reveal(bar) {
+            const px = bar * WD.view.ppb, sl = arrange.scrollLeft, visW = arrange.clientWidth - headW();
+            if (px < sl || px > sl + visW - 24) arrange.scrollLeft = Math.max(0, px - visW / 3);
+        },
         // Bildschirm-X → Position
         clientToBar(clientX) {
             const r = rulerEl.getBoundingClientRect();
@@ -185,7 +191,21 @@
     new ResizeObserver(V.requestDraw).observe(arrange);
     new ResizeObserver(V.requestDraw).observe(laneArea);
 
-    // Lineal: Klick setzt die Position, Ziehen legt den Cycle-Bereich an, der Balken selbst ist verschieb- und ziehbar.
+    // Beim Ziehen des Playheads an den Fensterrand läuft die Ansicht mit
+    function edgeScroll(clientX) {
+        const r = arrange.getBoundingClientRect();
+        if (clientX > r.right - 24) arrange.scrollLeft += 16;
+        else if (clientX < r.left + headW() + 24) arrange.scrollLeft -= 16;
+    }
+    const nearPlayhead = xIn => Math.abs(xIn - T().audible() * WD.view.ppb) < 7;
+
+    rulerEl.addEventListener('pointermove', e => {
+        if (e.buttons) return;
+        rulerEl.style.cursor = nearPlayhead(e.clientX - rulerEl.getBoundingClientRect().left) ? 'ew-resize' : '';
+    });
+
+    // Lineal: Klick setzt die Position, Ziehen am Playhead verschiebt ihn, Ziehen daneben legt den Cycle-Bereich an,
+    // der Balken selbst ist verschieb- und ziehbar.
     rulerEl.addEventListener('pointerdown', e => {
         if (e.button !== 0) return;
         e.preventDefault();
@@ -201,10 +221,22 @@
             else if (Math.abs(xIn - c.b * ppb) < 7) mode = 'right';
             else mode = 'move';
         }
+        const barMove = mode === 'move';
+        // Liegt eine Cycle-Kante auf dem Playhead, greift oben die Kante und im unteren Teil des Lineals der Playhead
+        if (nearPlayhead(xIn) && mode !== 'left' && mode !== 'right') mode = 'playhead';
         const toBar = ev => (ev.clientX - rect.left) / WD.view.ppb;
         const b0 = V.snap(toBar(e), e), a0 = c.a, bEnd0 = c.b;
         let dragged = false;
         const onMove = ev => {
+            if (mode === 'playhead') {
+                if (!dragged && Math.abs(ev.clientX - e.clientX) < 2) return;
+                dragged = true;
+                edgeScroll(ev.clientX);
+                const b = V.snap(V.clientToBar(ev.clientX), ev);
+                // Bei laufender Wiedergabe würde jeder Zwischenschritt den Klang neu starten
+                if (T().playing) { V.dragPos = b; kick(); } else T().seek(b);
+                return;
+            }
             const b1 = V.snap(toBar(ev), ev);
             if (!dragged && Math.abs(ev.clientX - e.clientX) < 4) return;
             dragged = true;
@@ -216,14 +248,17 @@
         const onUp = ev => {
             rulerEl.removeEventListener('pointermove', onMove);
             rulerEl.removeEventListener('pointerup', onUp);
+            rulerEl.removeEventListener('pointercancel', onUp);
+            if (V.dragPos !== null) { const b = V.dragPos; V.dragPos = null; T().seek(b); }
             if (!dragged) {
-                if (inBar && mode === 'move') T().toggleCycle();
+                if (inBar && barMove) T().toggleCycle();
                 else T().seek(V.snap(toBar(ev), ev));
             }
             tx.end();
         };
         rulerEl.addEventListener('pointermove', onMove);
         rulerEl.addEventListener('pointerup', onUp);
+        rulerEl.addEventListener('pointercancel', onUp);
     });
 
     // ----- Pegelmessung und gemeinsame Bild-Schleife: läuft nur, wenn etwas zu aktualisieren ist -----
@@ -258,16 +293,20 @@
     let lastText = '', lastX = -1, lcdMode = 'bars';
 
     function renderPlayhead() {
-        const pos = T().audible();
+        const dragging = V.dragPos !== null;
+        const pos = dragging ? V.dragPos : T().audible();
         const x = headW() + pos * WD.view.ppb;
         if (Math.abs(x - lastX) > 0.2) {
             playhead.style.transform = `translateX(${x}px)`;
             lastX = x;
         }
         const bb = T().barBeat(pos);
-        const text = lcdMode === 'bars' ? `${bb.bar}.${bb.beat}.${bb.sub}` : T().timeStr(pos);
+        // Im Stillstand zeigt die Anzeige auch feine Positionen abseits des Rasters
+        const still = !T().playing;
+        const fine = still && bb.tick ? '.' + String(bb.tick).padStart(2, '0') : '';
+        const text = lcdMode === 'bars' ? `${bb.bar}.${bb.beat}.${bb.sub}${fine}` : T().timeStr(pos, still ? 2 : 1);
         if (text !== lastText) { $('pos').textContent = text; lastText = text; }
-        if (T().playing) {
+        if (T().playing && !dragging) {
             const sl = arrange.scrollLeft, visW = arrange.clientWidth - headW();
             const px = pos * WD.view.ppb;
             if (!V.userScrolling && (px > sl + visW - 24 || px < sl)) arrange.scrollLeft = Math.max(0, px - 40);
@@ -313,9 +352,64 @@
     bus.on('tracks', V.layout);
     bus.on('timesig', () => { V.requestDraw(); kick(); });
 
-    $('lcdPos').addEventListener('click', () => {
-        lcdMode = lcdMode === 'bars' ? 'time' : 'bars';
-        $('posLabel').textContent = lcdMode === 'bars' ? 'TAKT · SCHLAG' : 'MIN : SEK';
-        lastText = ''; kick();
+    // "3", "3.2", "3.2.1", "3.2.1.50" oder "1:23.45". Ohne Doppelpunkt zählt in der Zeitanzeige die Zahl als Sekunden.
+    function parsePosition(raw, mode) {
+        const s = raw.trim().replace(/\s+/g, '');
+        if (!s) return null;
+        const t = /^(\d+):(\d+(?:[.,]\d*)?)$/.exec(s);
+        if (t) return (+t[1] * 60 + parseFloat(t[2].replace(',', '.'))) / M.secPerBar();
+        if (mode === 'time') {
+            if (!/^\d+(?:[.,]\d*)?$/.test(s)) return null;
+            return parseFloat(s.replace(',', '.')) / M.secPerBar();
+        }
+        const parts = s.replace(/,/g, '.').split('.');
+        if (parts.length > 4 || parts.some(p => !/^\d+$/.test(p))) return null;
+        const [bar, bt = 1, sub = 1, tick = 0] = parts.map(Number);
+        const beat = M.beatLen(), beats = Math.round(M.barLen() / beat);
+        if (bar < 1 || bt < 1 || bt > beats || sub < 1 || sub > 4 || tick > 99) return null;
+        return (bar - 1) * M.barLen() + (bt - 1) * beat + (sub - 1 + tick / 100) * beat / 4;
+    }
+    V.parsePosition = parsePosition;
+
+    function editPosition() {
+        const lcd = $('lcdPos'), show = $('pos');
+        if (lcd.querySelector('input')) return;
+        const input = WD.el('input', { type: 'text', class: 'lcd-pos-edit', 'aria-label': 'Position eingeben', spellcheck: 'false', value: show.textContent });
+        input.value = show.textContent;
+        show.hidden = true;
+        lcd.prepend(input);
+        input.focus(); input.select();
+        let done = false;
+        const finish = () => { if (done) return; done = true; input.remove(); show.hidden = false; lastText = ''; kick(); };
+        input.addEventListener('keydown', ev => {
+            ev.stopPropagation();
+            if (ev.key === 'Escape') finish();
+            else if (ev.key === 'Enter') {
+                const b = parsePosition(input.value, lcdMode);
+                if (b === null) { input.classList.add('bad'); return; }
+                finish();
+                T().seek(b);
+                V.reveal(b);
+            } else input.classList.remove('bad');
+        });
+        input.addEventListener('blur', finish);
+    }
+
+    // Einfacher Klick wartet kurz, damit ein Doppelklick die Anzeige nicht erst umschaltet
+    let lcdClick = 0;
+    $('lcdPos').addEventListener('click', e => {
+        if (e.target.tagName === 'INPUT') return;
+        clearTimeout(lcdClick);
+        if (e.detail > 1) return;
+        lcdClick = setTimeout(() => {
+            lcdMode = lcdMode === 'bars' ? 'time' : 'bars';
+            $('posLabel').textContent = lcdMode === 'bars' ? 'TAKT · SCHLAG' : 'MIN : SEK';
+            lastText = ''; kick();
+        }, 260);
+    });
+    $('lcdPos').addEventListener('dblclick', e => {
+        if (e.target.tagName === 'INPUT') return;
+        clearTimeout(lcdClick);
+        editPosition();
     });
 })();

@@ -51,6 +51,12 @@
 .lcd-cell small { font: 600 8.5px/1.2 var(--font); letter-spacing: .6px; color: var(--lcd-dim); white-space: nowrap; }
 .lcd-pos { min-width: 112px; cursor: default; }
 .lcd-big { font-size: 20px; line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
+.lcd-big[hidden] { display: none; }
+.lcd-pos-edit {
+    width: 100px; height: 23px; padding: 0; text-align: center; font: 18px/1.15 var(--font-num); color: var(--lcd-text);
+    background: rgba(255,255,255,.08); border: 1px solid var(--accent); border-radius: 3px; outline: none;
+}
+.lcd-pos-edit.bad { border-color: #e5484d; background: rgba(229,72,77,.18); }
 .lcd-row { display: flex; }
 .lcd-input, .lcd-select {
     background: none !important; border: none !important; color: var(--lcd-text);

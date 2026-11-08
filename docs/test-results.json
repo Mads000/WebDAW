@@ -125,7 +125,7 @@
     {
       "name": "F2: Tempo-Wechsel ohne Sprung",
       "ok": true,
-      "detail": "0.196 → 0.237"
+      "detail": "0.198 → 0.261"
     },
     {
       "name": "Pause hält die Position",
@@ -145,7 +145,7 @@
     {
       "name": "Taktart: Position 2.2 in 3/4",
       "ok": true,
-      "detail": "{\"bar\":2,\"beat\":2,\"sub\":1}"
+      "detail": "{\"bar\":2,\"beat\":2,\"sub\":1,\"tick\":0}"
     },
     {
       "name": "Taktart zurück auf 4/4",
@@ -275,17 +275,17 @@
     {
       "name": "Aufnahme erzeugt Region",
       "ok": true,
-      "detail": "{\"sec\":2.4480000000000004,\"dur\":2.448,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":439.95098039215685}"
+      "detail": "{\"sec\":2.4400000000000013,\"dur\":2.44,\"ch\":1,\"peak\":0.48829787969589233,\"freq\":440.1639344262295}"
     },
     {
       "name": "Dauer plausibel",
       "ok": true,
-      "detail": "2.45"
+      "detail": "2.44"
     },
     {
       "name": "Audiosignal des Eingangs kommt unverfälscht an (440 Hz)",
       "ok": true,
-      "detail": "440.0 Hz, Peak 0.49"
+      "detail": "440.2 Hz, Peak 0.49"
     },
     {
       "name": "F9: Mikrofon nach der Aufnahme wieder geschlossen",
@@ -305,7 +305,7 @@
     {
       "name": "F4: Cycle beendet Aufnahme nicht, je Runde ein Take",
       "ok": true,
-      "detail": "{\"n\":4,\"idx\":2,\"len\":0.5000000000000009,\"buf\":true}"
+      "detail": "{\"n\":4,\"idx\":2,\"len\":0.5,\"buf\":true}"
     },
     {
       "name": "Take-Länge entspricht Cycle",
@@ -370,7 +370,7 @@
     {
       "name": "Stimmgerät erkennt das Eingangssignal (440 Hz)",
       "ok": true,
-      "detail": "440.00006259022564"
+      "detail": "440.0001450422419"
     },
     {
       "name": "Stimmgerät schließt das Mikrofon wieder",
@@ -398,9 +398,9 @@
       "detail": ""
     },
     {
-      "name": "Latenzausgleich: Impuls landet am richtigen Takt (Ausgleich 165 ms)",
+      "name": "Latenzausgleich: Impuls landet am richtigen Takt (Ausgleich 162 ms)",
       "ok": true,
-      "detail": "-0.00 ms Abweichung"
+      "detail": "0.00 ms Abweichung"
     },
     {
       "name": "Abschnitt verschieben nimmt Inhalt mit",
@@ -470,7 +470,7 @@
     {
       "name": "K3: Autosave mit 3 Minuten Audio läuft",
       "ok": true,
-      "detail": "Automatisch gesichert 19:43"
+      "detail": "Automatisch gesichert 21:23"
     },
     {
       "name": "K3: Letzte Sitzung öffnet ohne Rückfrage",
@@ -565,7 +565,7 @@
     {
       "name": "P1: Rockin-Demo (122 s Musik) exportiert deutlich schneller als Echtzeit",
       "ok": true,
-      "detail": "8.3 s Rechenzeit (Original: über 120 s, nicht fertig geworden)"
+      "detail": "8.0 s Rechenzeit (Original: über 120 s, nicht fertig geworden)"
     },
     {
       "name": "A2: Bounce ohne Clipping, unter -1 dB",
@@ -575,7 +575,7 @@
     {
       "name": "Bounce nicht stumm",
       "ok": true,
-      "detail": "0.122"
+      "detail": "0.119"
     },
     {
       "name": "Stems: genau eine ZIP-Datei",
@@ -595,7 +595,7 @@
     {
       "name": "Audio-Region ist beim Abspielen hörbar",
       "ok": true,
-      "detail": "0.199"
+      "detail": "0.226"
     },
     {
       "name": "Mute wirkt auf das Signal",

@@ -11,6 +11,15 @@
         return el.tagName === 'INPUT' && ['text', 'number', 'search'].includes(el.type);
     }
 
+    const go = bar => { const b = Math.max(0, bar); T.seek(b); WD.timeline.reveal(b); };
+    // Zur nächsten Rasterlinie in Laufrichtung, auch von einer Position zwischen den Linien
+    const gridMove = dir => {
+        const g = WD.timeline.gridStep(), q = T.current() / g;
+        go((dir > 0 ? Math.floor(q + 1e-6) + 1 : Math.ceil(q - 1e-6) - 1) * g);
+    };
+    const FINE_SEC = 0.01;
+    const fineMove = dir => go(T.current() + dir * FINE_SEC / WD.model.secPerBar());
+
     addEventListener('keydown', e => {
         if (isTyping(e.target) || e.repeat && !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
         if (document.querySelector('.modal-back')) return;
@@ -36,6 +45,8 @@
                 a: () => Ops().selectAll(),
                 t: () => Ops().splitAtPlayhead(),
                 u: () => WD.tuner.open(),
+                arrowleft: () => fineMove(-1),
+                arrowright: () => fineMove(1),
             }[key];
             if (act) { e.preventDefault(); act(); }
             return;
@@ -47,8 +58,8 @@
             case 'Home': e.preventDefault(); T.rewind(); return;
             case 'Delete': case 'Backspace': e.preventDefault(); Ops().remove(); return;
             case 'Escape': Ops().clearSelection(); return;
-            case 'ArrowLeft': e.preventDefault(); T.seek(Math.max(0, T.current() - WD.model.barLen())); return;
-            case 'ArrowRight': e.preventDefault(); T.seek(T.current() + WD.model.barLen()); return;
+            case 'ArrowLeft': e.preventDefault(); if (e.shiftKey) gridMove(-1); else go(T.current() - WD.model.barLen()); return;
+            case 'ArrowRight': e.preventDefault(); if (e.shiftKey) gridMove(1); else go(T.current() + WD.model.barLen()); return;
             case '+': WD.timeline.zoomBy(1.25); return;
             case '-': WD.timeline.zoomBy(.8); return;
             case '0': WD.timeline.zoomToFit(); return;

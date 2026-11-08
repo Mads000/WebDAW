@@ -282,13 +282,17 @@
             const barIdx = Math.floor(b / barL + 1e-9);
             const rest = b - barIdx * barL;
             const beatIdx = Math.floor(rest / beat + 1e-9);
-            const tick16 = Math.floor((rest - beatIdx * beat) / beat * 4 + 1e-9);
-            return { bar: barIdx + 1, beat: beatIdx + 1, sub: tick16 + 1 };
+            const in16 = (rest - beatIdx * beat) / beat * 4;
+            const tick16 = Math.floor(in16 + 1e-9);
+            // Hundertstel einer Sechzehntel; Rundungsreste knapp unter dem nächsten Rasterpunkt zählen nicht
+            const tick = Math.min(99, Math.max(0, Math.floor((in16 - tick16) * 100 + 1e-6)));
+            return { bar: barIdx + 1, beat: beatIdx + 1, sub: tick16 + 1, tick };
         },
-        timeStr(bar) {
+        timeStr(bar, digits = 1) {
             const sec = Math.max(0, bar) * M.secPerBar();
-            const m = Math.floor(sec / 60), s = sec - m * 60;
-            return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0');
+            let m = Math.floor(sec / 60), s = sec - m * 60;
+            if (+s.toFixed(digits) >= 60) { m++; s = 0; }
+            return String(m).padStart(2, '0') + ':' + s.toFixed(digits).padStart(3 + digits, '0');
         },
     };
 
